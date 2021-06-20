@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Dudu</string>
+    <string name="main_title">Мои дела</string>
+    <string name="main_completed_label">Выполнено: %d</string>
+    <string name="main_visibility_btn_desc">Показать/скрыть</string>
+</resources>
