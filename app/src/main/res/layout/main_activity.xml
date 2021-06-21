@@ -71,6 +71,20 @@
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTasks"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:elevation="4dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_card"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/tbFixedHeader"
         android:layout_width="match_parent"
@@ -91,8 +105,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:visibility="invisible"
                 android:text="@string/main_title"
+                android:visibility="invisible"
                 tools:visibility="visible" />
 
             <ImageButton
@@ -101,8 +115,8 @@
                 android:layout_height="24dp"
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/main_visibility_btn_desc"
-                android:visibility="invisible"
                 android:src="@drawable/ic_show"
+                android:visibility="invisible"
                 tools:visibility="visible" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>

@@ -3,8 +3,12 @@ package com.example.dudu
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.dudu.databinding.MainActivityBinding
+import com.example.dudu.models.Priority
+import com.example.dudu.models.Task
 import com.google.android.material.appbar.AppBarLayout
+import java.util.*
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
@@ -15,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: MainActivityBinding
+    private val tasksAdapter = TasksAdapter()
     private var isHeaderVisible = true
     private var isFixedHeaderVisible = false
 
@@ -32,6 +37,27 @@ class MainActivity : AppCompatActivity() {
                 handleHeadersVisibility(verticalOffset)
             }
         )
+        initRV()
+    }
+
+    private fun initRV() {
+        tasksAdapter.tasks = getMockTasks()
+        binding.rvTasks.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = tasksAdapter
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun getMockTasks(): List<Task> {
+        val tasks = mutableListOf<Task>()
+        for (i in 1..25) {
+            val task = Task(i, "Мой созданный таск: $i",
+                Date(), Priority.NONE, i % 2 == 0
+            )
+            tasks.add(task)
+        }
+        return tasks
     }
 
     private fun handleHeadersVisibility(offset: Int) {

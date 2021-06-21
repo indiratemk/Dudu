@@ -4,8 +4,8 @@ import java.util.*
 
 data class Task(
     val id: Int,
-    val description: Int,
+    val description: String,
     val deadline: Date,
     val priority: Priority,
-    val isDone: Boolean
+    var isDone: Boolean
 )
