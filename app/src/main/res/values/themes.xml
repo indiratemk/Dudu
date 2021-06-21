@@ -26,7 +26,7 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="Button" parent="Widget.AppCompat.TextView">
+    <style name="ButtonTitle" parent="Widget.AppCompat.TextView">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/label_primary</item>
         <item name="android:textStyle">bold</item>
