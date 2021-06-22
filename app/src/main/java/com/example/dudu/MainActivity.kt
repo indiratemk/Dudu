@@ -3,6 +3,8 @@ package com.example.dudu
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.models.Priority
@@ -47,6 +49,25 @@ class MainActivity : AppCompatActivity() {
             adapter = tasksAdapter
             setHasFixedSize(true)
         }
+        val swipeHelper = object : SwipeHelper() {
+            override fun createLeftButtons(): List<ControlButton> {
+                val btnCheck = ControlButton(
+                    ContextCompat.getColor(this@MainActivity, R.color.green),
+                    ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
+                )
+                return listOf(btnCheck)
+            }
+
+            override fun createRightButtons(): List<ControlButton> {
+                val btnRemove = ControlButton(
+                    ContextCompat.getColor(this@MainActivity, R.color.red),
+                    ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
+                )
+                return listOf(btnRemove)
+            }
+        }
+        val touchHelper = ItemTouchHelper(swipeHelper)
+        touchHelper.attachToRecyclerView(binding.rvTasks)
     }
 
     private fun getMockTasks(): List<Task> {
