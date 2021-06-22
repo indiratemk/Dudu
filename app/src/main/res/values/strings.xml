@@ -3,4 +3,8 @@
     <string name="main_title">Мои дела</string>
     <string name="main_completed_label">Выполнено: %d</string>
     <string name="main_visibility_btn_desc">Показать/скрыть</string>
+
+    <string name="task_short">Проверка короткого таска</string>
+    <string name="task_normal">Проверка таска средней длины. И так, проверим</string>
+    <string name="task_long">Проверка длинного таска. Здесь надо написать очень много текста, чтобы можно было проверить, что происходит с текстом в такой ситуации</string>
 </resources>

@@ -52,9 +52,17 @@ class MainActivity : AppCompatActivity() {
     private fun getMockTasks(): List<Task> {
         val tasks = mutableListOf<Task>()
         for (i in 1..25) {
-            val task = Task(i, "Мой созданный таск: $i",
-                Date(), Priority.NONE, i % 2 == 0
-            )
+            val task = when {
+                i % 2 == 0 -> {
+                    Task(i, getString(R.string.task_short), Date(), Priority.LOW, true)
+                }
+                i % 3 == 0 -> {
+                    Task(i, getString(R.string.task_normal), Date(), Priority.NONE, false)
+                }
+                else -> {
+                    Task(i, getString(R.string.task_long), Date(), Priority.HIGH, false)
+                }
+            }
             tasks.add(task)
         }
         return tasks
