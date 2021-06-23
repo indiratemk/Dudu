@@ -13,7 +13,7 @@ import com.google.android.material.appbar.AppBarLayout
 import java.util.*
 import kotlin.math.abs
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TaskClickListener {
 
     companion object {
         const val PERCENTAGE_TO_HIDE_HEADER = 0.3f
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: MainActivityBinding
-    private val tasksAdapter = TasksAdapter()
+    private val tasksAdapter = TasksAdapter(this)
     private var isHeaderVisible = true
     private var isFixedHeaderVisible = false
 
@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
             }
         )
         initRV()
+        updateHeader()
     }
 
     private fun initRV() {
@@ -50,27 +51,31 @@ class MainActivity : AppCompatActivity() {
             setHasFixedSize(true)
         }
         val swipeHelper = object : SwipeHelper() {
-            override fun createLeftButtons(): List<ControlButton> {
-                val btnCheck = ControlButton(
+            override fun createLeftButton(): ControlButton {
+                return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.green),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
-                )
-                return listOf(btnCheck)
+                ) {
+                    tasksAdapter.changeTaskStatus(it)
+                    updateHeader()
+                }
             }
 
-            override fun createRightButtons(): List<ControlButton> {
-                val btnRemove = ControlButton(
+            override fun createRightButton(): ControlButton {
+                return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.red),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
-                )
-                return listOf(btnRemove)
+                ) {
+                    tasksAdapter.removeTask(it)
+                    updateHeader()
+                }
             }
         }
         val touchHelper = ItemTouchHelper(swipeHelper)
         touchHelper.attachToRecyclerView(binding.rvTasks)
     }
 
-    private fun getMockTasks(): List<Task> {
+    private fun getMockTasks(): MutableList<Task> {
         val tasks = mutableListOf<Task>()
         for (i in 1..25) {
             val task = when {
@@ -124,5 +129,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun updateHeader() {
+        binding.tvCompleted.text = getString(R.string.main_completed_label,
+            tasksAdapter.getDoneTasksSize())
+    }
+
+    override fun onTaskCheckedClick(isChecked: Boolean) {
+        updateHeader()
     }
 }

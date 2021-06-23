@@ -6,9 +6,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.dudu.databinding.TaskItemBinding
 import com.example.dudu.models.Task
 
-class TasksAdapter : RecyclerView.Adapter<TaskVH>() {
+class TasksAdapter(
+    private val listener: TaskClickListener
+) : RecyclerView.Adapter<TaskVH>() {
 
-    var tasks = emptyList<Task>()
+    var tasks = mutableListOf<Task>()
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -20,8 +22,20 @@ class TasksAdapter : RecyclerView.Adapter<TaskVH>() {
     }
 
     override fun onBindViewHolder(holder: TaskVH, position: Int) {
-        holder.bind(tasks[position])
+        holder.bind(tasks[position], listener)
     }
 
     override fun getItemCount() = tasks.size
+
+    fun removeTask(position: Int) {
+        tasks.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+    fun changeTaskStatus(position: Int) {
+        tasks[position].isDone = !tasks[position].isDone
+        notifyItemChanged(position)
+    }
+
+    fun getDoneTasksSize() = tasks.filter { it.isDone }.size
 }

@@ -13,12 +13,13 @@ class TaskVH(
     private val binding: TaskItemBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(task: Task) {
+    fun bind(task: Task, listener: TaskClickListener) {
         with(binding) {
             cbStatus.isChecked = task.isDone
             cbStatus.setOnClickListener {
                 task.isDone = !task.isDone
                 handleTaskStatus(task.isDone, task.priority)
+                listener.onTaskCheckedClick(task.isDone)
             }
             tvDescription.text = task.description
             tvDeadline.text = DateFormatter.formatDate(task.deadline, DateFormatter.DF1)

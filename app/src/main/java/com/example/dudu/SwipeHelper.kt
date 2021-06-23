@@ -16,9 +16,12 @@ abstract class SwipeHelper :
         ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
     ) {
 
-    abstract fun createLeftButtons(): List<ControlButton>
+    private lateinit var leftButton: ControlButton
+    private lateinit var rightButton: ControlButton
 
-    abstract fun createRightButtons(): List<ControlButton>
+    abstract fun createLeftButton(): ControlButton
+
+    abstract fun createRightButton(): ControlButton
 
     override fun onMove(
         recyclerView: RecyclerView,
@@ -28,7 +31,13 @@ abstract class SwipeHelper :
         return false
     }
 
-    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+        val position = viewHolder.adapterPosition
+        when (direction) {
+            ItemTouchHelper.LEFT -> rightButton.onClickEvent(position)
+            ItemTouchHelper.RIGHT -> leftButton.onClickEvent(position)
+        }
+    }
 
     override fun onChildDraw(
         c: Canvas,
@@ -39,68 +48,56 @@ abstract class SwipeHelper :
         actionState: Int,
         isCurrentlyActive: Boolean
     ) {
-        var translationX = dX
         val itemView = viewHolder.itemView
         if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
             if (dX < 0) {
-                val rightButtons = createRightButtons()
-                translationX = dX * rightButtons.size * itemView.height / itemView.width
-                onDrawRightButton(itemView, c, translationX, rightButtons)
+                rightButton = createRightButton()
+                onDrawRightButton(itemView, c, dX)
             } else if (dX > 0) {
-                val leftButtons = createLeftButtons()
-                translationX = dX * leftButtons.size * itemView.height / itemView.width
-                onDrawLeftButton(itemView, c, translationX, leftButtons)
+                leftButton = createLeftButton()
+                onDrawLeftButton(itemView, c, dX)
             }
         }
-        super.onChildDraw(c, recyclerView, viewHolder, translationX, dY, actionState, isCurrentlyActive)
+        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
     }
 
     private fun onDrawRightButton(
         itemView: View,
         canvas: Canvas,
-        translationX: Float,
-        buttons: List<ControlButton>
+        translationX: Float
     ) {
-        var right = itemView.right.toFloat()
-        val btnWidth = -1 * translationX / buttons.size
-        for (button in buttons) {
-            val left = right - btnWidth
-            button.onDraw(canvas, RectF(left, itemView.top.toFloat(),
-                right, itemView.bottom.toFloat()))
-            right = left
-        }
+        val right = itemView.right.toFloat()
+        val left = right + translationX
+        rightButton.onDraw(canvas, RectF(left, itemView.top.toFloat(),
+            right, itemView.bottom.toFloat()), left + itemView.height / 2)
     }
 
     private fun onDrawLeftButton(
         itemView: View,
         canvas: Canvas,
-        translationX: Float,
-        buttons: List<ControlButton>
+        translationX: Float
     ) {
-        var left = itemView.left.toFloat()
-        val btnWidth = translationX / buttons.size
-        for (button in buttons) {
-            val right = left + btnWidth
-            button.onDraw(canvas, RectF(left, itemView.top.toFloat(),
-                right, itemView.bottom.toFloat()))
-            left = right
-        }
+        val left = itemView.left.toFloat()
+        val right = left + translationX
+        leftButton.onDraw(canvas, RectF(left, itemView.top.toFloat(),
+            right, itemView.bottom.toFloat()), right - itemView.height / 2)
     }
 
 
     class ControlButton(
         private val color: Int,
-        private val drawable: Drawable?
+        private val drawable: Drawable?,
+        val onClickEvent: (Int) -> Unit
     ) {
 
-        fun onDraw(canvas: Canvas, rectF: RectF) {
+        fun onDraw(canvas: Canvas, rectF: RectF, startPosition: Float) {
             val paint = Paint()
             paint.color = color
             canvas.drawRect(rectF, paint)
 
             drawable?.let {
                 val bitmap = drawableToBitmap(it)
-                canvas.drawBitmap(bitmap, rectF.centerX() - bitmap.width / 2,
+                canvas.drawBitmap(bitmap, startPosition - bitmap.width / 2,
                     rectF.centerY() - bitmap.height / 2, null)
             }
         }
