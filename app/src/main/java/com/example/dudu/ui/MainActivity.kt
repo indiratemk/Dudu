@@ -1,4 +1,4 @@
-package com.example.dudu
+package com.example.dudu.ui
 
 import android.os.Bundle
 import android.view.View
@@ -6,9 +6,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.dudu.*
 import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.models.Priority
 import com.example.dudu.models.Task
+import com.example.dudu.ui.tasks.SwipeHelper
+import com.example.dudu.ui.tasks.TaskClickListener
+import com.example.dudu.ui.tasks.TasksAdapter
 import com.google.android.material.appbar.AppBarLayout
 import java.util.*
 import kotlin.math.abs
@@ -23,7 +27,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     private lateinit var binding: MainActivityBinding
     private val tasksAdapter = TasksAdapter(this)
     private var isHeaderVisible = true
-    private var isFixedHeaderVisible = false
+    private var isFixedHeaderVisible = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,9 +1,10 @@
-package com.example.dudu
+package com.example.dudu.ui.tasks
 
 import android.graphics.Paint
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.dudu.R
 import com.example.dudu.databinding.TaskItemBinding
 import com.example.dudu.models.Priority
 import com.example.dudu.models.Task
@@ -42,12 +43,14 @@ class TaskVH(
             visibility = when {
                 !isDone && priority == Priority.LOW -> {
                     setImageDrawable(ContextCompat.getDrawable(itemView.context,
-                        R.drawable.ic_low_priority))
+                        R.drawable.ic_low_priority
+                    ))
                     View.VISIBLE
                 }
                 !isDone && priority == Priority.HIGH -> {
                     setImageDrawable(ContextCompat.getDrawable(itemView.context,
-                        R.drawable.ic_high_priority))
+                        R.drawable.ic_high_priority
+                    ))
                     View.VISIBLE
                 }
                 else -> {

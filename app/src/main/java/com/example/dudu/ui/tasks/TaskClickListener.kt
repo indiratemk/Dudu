@@ -1,4 +1,4 @@
-package com.example.dudu
+package com.example.dudu.ui.tasks
 
 interface TaskClickListener {
 
