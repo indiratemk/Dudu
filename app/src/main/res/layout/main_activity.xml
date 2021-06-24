@@ -115,8 +115,8 @@
                 android:layout_height="24dp"
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/main_visibility_btn_desc"
-                android:src="@drawable/ic_show"
                 android:visibility="invisible"
+                app:srcCompat="@drawable/ic_show"
                 tools:visibility="visible" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>

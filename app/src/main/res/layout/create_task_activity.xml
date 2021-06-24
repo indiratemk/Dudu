@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/back_primary"
+    android:orientation="vertical"
+    tools:context=".ui.task.CreateTaskActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:liftOnScroll="true">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/back_primary"
+            app:layout_scrollFlags="enterAlways" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvDescriptionError"
+                style="@style/Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/create_task_description_error"
+                android:textColor="@color/red"
+                android:visibility="gone" />
+
+            <EditText
+                android:id="@+id/etDescription"
+                style="@style/Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_card"
+                android:elevation="2dp"
+                android:gravity="top|start"
+                android:hint="@string/create_task_input_hint"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minHeight="96dp"
+                android:padding="16dp"
+                android:textColorHint="@color/label_tertiary" />
+
+            <Spinner
+                android:id="@+id/spinnerPriority"
+                android:layout_width="164dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="28dp"
+                android:layout_marginEnd="16dp"
+                android:background="@null"
+                android:popupElevation="2dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/support_separator" />
+
+            <include
+                android:id="@+id/deadlineLayout"
+                layout="@layout/deadline_layout" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/support_separator" />
+
+            <Button
+                android:id="@+id/btnRemove"
+                style="@style/Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:background="@android:color/transparent"
+                android:enabled="false"
+                android:gravity="start|center_vertical"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp"
+                android:text="@string/create_task_btn_remove"
+                android:textColor="@drawable/btn_red_color"
+                android:foreground="?attr/selectableItemBackground"
+                app:icon="@drawable/ic_remove"
+                app:iconPadding="12dp"
+                app:iconTint="@drawable/btn_red_color" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

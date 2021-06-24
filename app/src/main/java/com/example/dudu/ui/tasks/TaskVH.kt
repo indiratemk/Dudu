@@ -23,12 +23,13 @@ class TaskVH(
                 listener.onTaskCheckedClick(task.isDone)
             }
             tvDescription.text = task.description
-            tvDeadline.text = DateFormatter.formatDate(task.deadline, DateFormatter.DF1)
+            tvDeadline.visibility = if (task.deadline == null) View.GONE else View.VISIBLE
+            tvDeadline.text = task.deadline?.let { DateFormatter.formatDate(it, DateFormatter.DF1) }
             handleTaskStatus(task.isDone, task.priority)
         }
     }
 
-    private fun handleTaskStatus(isDone: Boolean, priority: Priority) {
+    private fun handleTaskStatus(isDone: Boolean, priority: Int) {
         binding.tvDescription.apply {
             paintFlags = if (isDone) {
                 setTextColor(ContextCompat.getColor(itemView.context, R.color.label_tertiary))
@@ -41,13 +42,13 @@ class TaskVH(
 
         binding.ivPriority.apply {
             visibility = when {
-                !isDone && priority == Priority.LOW -> {
+                !isDone && priority == Priority.LOW.value -> {
                     setImageDrawable(ContextCompat.getDrawable(itemView.context,
                         R.drawable.ic_low_priority
                     ))
                     View.VISIBLE
                 }
-                !isDone && priority == Priority.HIGH -> {
+                !isDone && priority == Priority.HIGH.value -> {
                     setImageDrawable(ContextCompat.getDrawable(itemView.context,
                         R.drawable.ic_high_priority
                     ))

@@ -84,13 +84,13 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         for (i in 1..25) {
             val task = when {
                 i % 2 == 0 -> {
-                    Task(i, getString(R.string.task_short), Date(), Priority.LOW, true)
+                    Task(i, getString(R.string.task_short), Date(), 1, true)
                 }
                 i % 3 == 0 -> {
-                    Task(i, getString(R.string.task_normal), Date(), Priority.NONE, false)
+                    Task(i, getString(R.string.task_normal), Date(), 0, false)
                 }
                 else -> {
-                    Task(i, getString(R.string.task_long), Date(), Priority.HIGH, false)
+                    Task(i, getString(R.string.task_long), Date(), 2, false)
                 }
             }
             tasks.add(task)
@@ -136,8 +136,10 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     }
 
     private fun updateHeader() {
-        binding.tvCompleted.text = getString(R.string.main_completed_label,
-            tasksAdapter.getDoneTasksSize())
+        binding.tvCompleted.text = getString(
+            R.string.main_completed_label,
+            tasksAdapter.getDoneTasksSize()
+        )
     }
 
     override fun onTaskCheckedClick(isChecked: Boolean) {

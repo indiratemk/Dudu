@@ -12,5 +12,15 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="android:actionMenuTextColor">@color/blue</item>
+        <item name="android:datePickerDialogTheme">@style/DatePicker</item>
+    </style>
+
+    <style name="DatePicker" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorOnPrimary">@color/blue</item>
+        <item name="colorSecondary">@color/blue</item>
+        <item name="android:background">@color/back_primary</item>
+        <item name="android:textColorPrimaryInverse">@color/white</item>
+        <item name="android:textColorSecondaryInverse">@color/white</item>
     </style>
 </resources>

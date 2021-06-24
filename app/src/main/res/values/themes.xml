@@ -12,6 +12,8 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="android:actionMenuTextColor">@color/blue</item>
+        <item name="android:datePickerDialogTheme">@style/DatePicker</item>
     </style>
 
     <style name="LargeTitle" parent="Widget.AppCompat.TextView">
@@ -40,5 +42,12 @@
     <style name="Subhead" parent="Widget.AppCompat.TextView">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/label_primary</item>
+    </style>
+
+    <style name="DatePicker" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorOnPrimary">@color/blue</item>
+        <item name="colorSecondary">@color/blue</item>
+        <item name="android:textColorPrimaryInverse">@color/white</item>
+        <item name="android:textColorSecondaryInverse">@color/white</item>
     </style>
 </resources>
