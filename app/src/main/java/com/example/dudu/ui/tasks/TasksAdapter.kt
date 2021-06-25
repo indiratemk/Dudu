@@ -32,9 +32,26 @@ class TasksAdapter(
         notifyItemRemoved(position)
     }
 
+    fun removeTask(task: Task) {
+        val position = tasks.indexOfFirst { task.id == it.id }
+        tasks.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
     fun changeTaskStatus(position: Int) {
         tasks[position].isDone = !tasks[position].isDone
         notifyItemChanged(position)
+    }
+
+    fun updateTask(task: Task) {
+        val position = tasks.indexOfFirst { task.id == it.id }
+        tasks[position] = task
+        notifyItemChanged(position)
+    }
+
+    fun addTask(task: Task) {
+        tasks.add(task)
+        notifyItemInserted(tasks.size - 1)
     }
 
     fun getDoneTasksSize() = tasks.filter { it.isDone }.size

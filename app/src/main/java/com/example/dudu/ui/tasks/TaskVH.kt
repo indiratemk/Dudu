@@ -9,6 +9,7 @@ import com.example.dudu.databinding.TaskItemBinding
 import com.example.dudu.models.Priority
 import com.example.dudu.models.Task
 import com.example.dudu.util.DateFormatter
+import java.util.*
 
 class TaskVH(
     private val binding: TaskItemBinding
@@ -19,44 +20,71 @@ class TaskVH(
             cbStatus.isChecked = task.isDone
             cbStatus.setOnClickListener {
                 task.isDone = !task.isDone
-                handleTaskStatus(task.isDone, task.priority)
+                handleStatus(task)
                 listener.onTaskCheckedClick(task.isDone)
             }
+            clTask.setOnClickListener { listener.onTaskClick(task) }
             tvDescription.text = task.description
             tvDeadline.visibility = if (task.deadline == null) View.GONE else View.VISIBLE
             tvDeadline.text = task.deadline?.let { DateFormatter.formatDate(it, DateFormatter.DF1) }
-            handleTaskStatus(task.isDone, task.priority)
+            handleStatus(task)
         }
     }
 
-    private fun handleTaskStatus(isDone: Boolean, priority: Int) {
-        binding.tvDescription.apply {
-            paintFlags = if (isDone) {
-                setTextColor(ContextCompat.getColor(itemView.context, R.color.label_tertiary))
-                paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+    private fun handleStatus(task: Task) {
+        with(binding) {
+            if (task.isDone) {
+                tvDescription.setTextColor(ContextCompat.getColor(itemView.context,
+                    R.color.label_tertiary))
+                tvDescription.paintFlags = tvDescription.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                ivPriority.visibility = View.GONE
             } else {
-                setTextColor(ContextCompat.getColor(itemView.context, R.color.label_primary))
-                paintFlags.rem(Paint.STRIKE_THRU_TEXT_FLAG)
+                tvDescription.setTextColor(ContextCompat.getColor(itemView.context,
+                    R.color.label_primary))
+                tvDescription.paintFlags = tvDescription.paintFlags.rem(Paint.STRIKE_THRU_TEXT_FLAG)
+                handlePriority(task.priority)
+                handleDeadline(task.deadline)
             }
         }
+    }
 
-        binding.ivPriority.apply {
-            visibility = when {
-                !isDone && priority == Priority.LOW.value -> {
-                    setImageDrawable(ContextCompat.getDrawable(itemView.context,
-                        R.drawable.ic_low_priority
-                    ))
-                    View.VISIBLE
-                }
-                !isDone && priority == Priority.HIGH.value -> {
+    private fun handlePriority(priority: Int) {
+        with(binding.ivPriority) {
+            when (priority) {
+                Priority.HIGH.value -> {
                     setImageDrawable(ContextCompat.getDrawable(itemView.context,
                         R.drawable.ic_high_priority
                     ))
-                    View.VISIBLE
+                    visibility = View.VISIBLE
+                }
+                Priority.LOW.value -> {
+                    setImageDrawable(ContextCompat.getDrawable(itemView.context,
+                        R.drawable.ic_low_priority
+                    ))
+                    visibility = View.VISIBLE
                 }
                 else -> {
-                    View.GONE
+                    visibility = View.GONE
                 }
+            }
+        }
+    }
+
+    private fun handleDeadline(date: Date?) {
+        with(binding) {
+            if (date == null) {
+                cbStatus.buttonDrawable =
+                    ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
+                return
+            }
+            val currentDateInMillis = DateFormatter.getDateWithoutTime(Calendar.getInstance().time).time
+            val deadlineInMillis = DateFormatter.getDateWithoutTime(date).time
+            if (deadlineInMillis >= currentDateInMillis) {
+                cbStatus.buttonDrawable =
+                    ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
+            } else {
+                cbStatus.buttonDrawable =
+                    ContextCompat.getDrawable(itemView.context, R.drawable.cb_expired_selector)
             }
         }
     }

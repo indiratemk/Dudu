@@ -10,4 +10,12 @@ object DateFormatter {
     fun formatDate(date: Date, format: String): String {
         return SimpleDateFormat(format, Locale("ru", "RU")).format(date)
     }
+
+    fun getDateWithoutTime(date: Date): Date {
+        return getDateFromString(formatDate(date, DF1), DF1)
+    }
+
+    private fun getDateFromString(date: String, format: String): Date {
+        return SimpleDateFormat(format, Locale("ru", "RU")).parse(date)!!
+    }
 }

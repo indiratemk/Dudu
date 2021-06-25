@@ -8,15 +8,13 @@
     <string name="create_task_menu_action_save">Сохранить</string>
     <string name="create_task_input_hint">Что надо сделать…</string>
     <string name="create_task_priority_high">!! Высокий</string>
+    <string name="create_task_priority_low">Низкий</string>
+    <string name="create_task_priority_none">Нет</string>
     <string name="create_task_priority_label">Важность</string>
     <string name="create_task_btn_remove">Удалить</string>
+    <string name="create_task_btn_reset">Очистить</string>
     <string name="create_task_deadline_label">Сделать до</string>
     <string name="create_task_description_error">Введите пожалуйста описание задачи =)</string>
-    <string-array name="priority_variants">
-        <item>Нет</item>
-        <item>Низкий</item>
-        <item>!! Высокий</item>
-    </string-array>
 
     <string name="task_short">Проверка короткого таска</string>
     <string name="task_normal">Проверка таска средней длины. И так, проверим</string>

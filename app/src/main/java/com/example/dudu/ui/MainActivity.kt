@@ -1,5 +1,6 @@
 package com.example.dudu.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -8,11 +9,12 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.dudu.*
 import com.example.dudu.databinding.MainActivityBinding
-import com.example.dudu.models.Priority
 import com.example.dudu.models.Task
+import com.example.dudu.ui.task.CreateTaskActivity
 import com.example.dudu.ui.tasks.SwipeHelper
 import com.example.dudu.ui.tasks.TaskClickListener
 import com.example.dudu.ui.tasks.TasksAdapter
+import com.example.dudu.util.Constants
 import com.google.android.material.appbar.AppBarLayout
 import java.util.*
 import kotlin.math.abs
@@ -43,6 +45,9 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 handleHeadersVisibility(verticalOffset)
             }
         )
+        binding.fabCreateTask.setOnClickListener {
+            CreateTaskActivity.startActivityForResult(this, Constants.REQUEST_CREATE_TASK)
+        }
         initRV()
         updateHeader()
     }
@@ -79,18 +84,43 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         touchHelper.attachToRecyclerView(binding.rvTasks)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            Constants.REQUEST_EDIT_TASK -> {
+                val task = data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)
+                when (resultCode) {
+                    Constants.RESULT_TASK_REMOVED -> {
+                        task?.let{ tasksAdapter.removeTask(it) }
+                    }
+                    Constants.RESULT_TASK_EDITED -> {
+                        task?.let { tasksAdapter.updateTask(it) }
+                    }
+                }
+            }
+            Constants.REQUEST_CREATE_TASK -> {
+                val task = data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)
+                if (resultCode == Constants.RESULT_TASK_CREATED) {
+                    task?.let { tasksAdapter.addTask(it) }
+                }
+            }
+        }
+    }
+
     private fun getMockTasks(): MutableList<Task> {
         val tasks = mutableListOf<Task>()
+        val c = Calendar.getInstance()
+        c.set(2020, 1, 1)
         for (i in 1..25) {
             val task = when {
                 i % 2 == 0 -> {
-                    Task(i, getString(R.string.task_short), Date(), 1, true)
+                    Task(i.toString(), getString(R.string.task_short), Calendar.getInstance().time, 1, true)
                 }
                 i % 3 == 0 -> {
-                    Task(i, getString(R.string.task_normal), Date(), 0, false)
+                    Task(i.toString(), getString(R.string.task_normal), c.time, 0, false)
                 }
                 else -> {
-                    Task(i, getString(R.string.task_long), Date(), 2, false)
+                    Task(i.toString(), getString(R.string.task_long), Calendar.getInstance().time, 2, false)
                 }
             }
             tasks.add(task)
@@ -144,5 +174,9 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
     override fun onTaskCheckedClick(isChecked: Boolean) {
         updateHeader()
+    }
+
+    override fun onTaskClick(task: Task) {
+        CreateTaskActivity.startActivityForResult(this, task, Constants.REQUEST_EDIT_TASK)
     }
 }
