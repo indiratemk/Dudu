@@ -1,4 +1,4 @@
-package com.example.dudu.ui.tasks
+package com.example.dudu.util
 
 import android.animation.ObjectAnimator
 import android.graphics.*
@@ -33,16 +33,16 @@ abstract class SwipeHelper :
         val position = viewHolder.adapterPosition
         when (direction) {
             ItemTouchHelper.LEFT -> {
-                rightButton.onClickEvent(position)
+                rightButton.onSwipeEvent(position)
             }
             ItemTouchHelper.RIGHT -> {
-                ObjectAnimator.ofFloat(viewHolder.itemView,
-                    "translationX",
-                    0f).apply {
-                    duration = 2000
-                    start()
-                }
-                leftButton.onClickEvent(position)
+//                ObjectAnimator.ofFloat(viewHolder.itemView,
+//                    "translationX",
+//                    0f).apply {
+//                    duration = 2000
+//                    start()
+//                }
+                leftButton.onSwipeEvent(position)
             }
         }
     }
@@ -95,7 +95,7 @@ abstract class SwipeHelper :
     class ControlButton(
         private val color: Int,
         private val drawable: Drawable?,
-        val onClickEvent: (Int) -> Unit
+        val onSwipeEvent: (Int) -> Unit
     ) {
 
         fun onDraw(canvas: Canvas, rectF: RectF, startPosition: Float) {

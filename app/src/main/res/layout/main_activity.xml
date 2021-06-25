@@ -60,12 +60,11 @@
                         android:id="@+id/ibVisibility"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:background="@android:color/transparent"
+                        android:background="@drawable/btn_visibility"
                         android:contentDescription="@string/main_visibility_btn_desc"
                         app:layout_constraintBottom_toBottomOf="@id/tvCompleted"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-                        app:srcCompat="@drawable/ic_show" />
+                        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </FrameLayout>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
@@ -113,10 +112,9 @@
                 android:id="@+id/ibMenuVisibility"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:background="@android:color/transparent"
+                android:background="@drawable/btn_visibility"
                 android:contentDescription="@string/main_visibility_btn_desc"
                 android:visibility="invisible"
-                app:srcCompat="@drawable/ic_show"
                 tools:visibility="visible" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>

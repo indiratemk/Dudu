@@ -11,7 +11,7 @@ import com.example.dudu.*
 import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.models.Task
 import com.example.dudu.ui.task.CreateTaskActivity
-import com.example.dudu.ui.tasks.SwipeHelper
+import com.example.dudu.util.SwipeHelper
 import com.example.dudu.ui.tasks.TaskClickListener
 import com.example.dudu.ui.tasks.TasksAdapter
 import com.example.dudu.util.Constants
@@ -40,20 +40,44 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     }
 
     private fun initUI() {
-        binding.appBarLayout.addOnOffsetChangedListener(
-            AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-                handleHeadersVisibility(verticalOffset)
+        with(binding) {
+            appBarLayout.addOnOffsetChangedListener(
+                AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
+                    handleHeadersVisibility(verticalOffset)
+                }
+            )
+            fabCreateTask.setOnClickListener {
+                CreateTaskActivity.startActivityForResult(this@MainActivity, Constants.REQUEST_CREATE_TASK)
             }
-        )
-        binding.fabCreateTask.setOnClickListener {
-            CreateTaskActivity.startActivityForResult(this, Constants.REQUEST_CREATE_TASK)
+            ibVisibility.apply {
+                setOnClickListener {
+                    isSelected = !isSelected
+                    ibMenuVisibility.isSelected = isSelected
+                    if (isSelected) {
+                        tasksAdapter.showDoneTasks()
+                    } else {
+                        tasksAdapter.hideDoneTasks()
+                    }
+                }
+            }
+            ibMenuVisibility.apply {
+                setOnClickListener {
+                    isSelected = !isSelected
+                    ibVisibility.isSelected = isSelected
+                    if (isSelected) {
+                        tasksAdapter.showDoneTasks()
+                    } else {
+                        tasksAdapter.hideDoneTasks()
+                    }
+                }
+            }
         }
         initRV()
         updateHeader()
     }
 
     private fun initRV() {
-        tasksAdapter.tasks = getMockTasks()
+        tasksAdapter.setNewTasks(getMockTasks())
         binding.rvTasks.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = tasksAdapter
@@ -65,7 +89,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                     ContextCompat.getColor(this@MainActivity, R.color.green),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
                 ) {
-                    tasksAdapter.changeTaskStatus(it)
+                    tasksAdapter.updateTaskStatus(it)
                     updateHeader()
                 }
             }
@@ -114,13 +138,13 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         for (i in 1..25) {
             val task = when {
                 i % 2 == 0 -> {
-                    Task(i.toString(), getString(R.string.task_short), Calendar.getInstance().time, 1, true)
+                    Task(i.toString(), "$i" + getString(R.string.task_short), Calendar.getInstance().time, 1, true)
                 }
                 i % 3 == 0 -> {
-                    Task(i.toString(), getString(R.string.task_normal), c.time, 0, false)
+                    Task(i.toString(), "$i" + getString(R.string.task_normal), c.time, 0, false)
                 }
                 else -> {
-                    Task(i.toString(), getString(R.string.task_long), Calendar.getInstance().time, 2, false)
+                    Task(i.toString(), "$i" + getString(R.string.task_long), Calendar.getInstance().time, 2, false)
                 }
             }
             tasks.add(task)
@@ -172,7 +196,8 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         )
     }
 
-    override fun onTaskCheckedClick(isChecked: Boolean) {
+    override fun onTaskCheckedClick(position: Int) {
+        tasksAdapter.updateTaskStatus(position)
         updateHeader()
     }
 
