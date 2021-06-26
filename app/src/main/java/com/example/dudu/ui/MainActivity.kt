@@ -2,7 +2,6 @@ package com.example.dudu.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -11,25 +10,16 @@ import com.example.dudu.*
 import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.models.Task
 import com.example.dudu.ui.task.CreateTaskActivity
-import com.example.dudu.util.SwipeHelper
 import com.example.dudu.ui.tasks.TaskClickListener
 import com.example.dudu.ui.tasks.TasksAdapter
 import com.example.dudu.util.Constants
-import com.google.android.material.appbar.AppBarLayout
+import com.example.dudu.util.SwipeHelper
 import java.util.*
-import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), TaskClickListener {
 
-    companion object {
-        const val PERCENTAGE_TO_HIDE_HEADER = 0.3f
-        const val PERCENTAGE_TO_SHOW_FIXED_HEADER = 0.9f
-    }
-
     private lateinit var binding: MainActivityBinding
     private val tasksAdapter = TasksAdapter(this)
-    private var isHeaderVisible = true
-    private var isFixedHeaderVisible = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,18 +31,12 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
     private fun initUI() {
         with(binding) {
-            appBarLayout.addOnOffsetChangedListener(
-                AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-                    handleHeadersVisibility(verticalOffset)
-                }
-            )
             fabCreateTask.setOnClickListener {
                 CreateTaskActivity.startActivityForResult(this@MainActivity, Constants.REQUEST_CREATE_TASK)
             }
-            ibVisibility.apply {
+            headerLayout.ibVisibility.apply {
                 setOnClickListener {
                     isSelected = !isSelected
-                    ibMenuVisibility.isSelected = isSelected
                     if (isSelected) {
                         tasksAdapter.showDoneTasks()
                     } else {
@@ -60,16 +44,8 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                     }
                 }
             }
-            ibMenuVisibility.apply {
-                setOnClickListener {
-                    isSelected = !isSelected
-                    ibVisibility.isSelected = isSelected
-                    if (isSelected) {
-                        tasksAdapter.showDoneTasks()
-                    } else {
-                        tasksAdapter.hideDoneTasks()
-                    }
-                }
+            headerLayout.ctToolbar.setOnClickListener {
+                binding.rvTasks.smoothScrollToPosition(0)
             }
         }
         initRV()
@@ -135,7 +111,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         val tasks = mutableListOf<Task>()
         val c = Calendar.getInstance()
         c.set(2020, 1, 1)
-        for (i in 1..25) {
+        for (i in 1..10) {
             val task = when {
                 i % 2 == 0 -> {
                     Task(i.toString(), "$i" + getString(R.string.task_short), Calendar.getInstance().time, 1, true)
@@ -152,45 +128,8 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         return tasks
     }
 
-    private fun handleHeadersVisibility(offset: Int) {
-        val maxScroll = binding.appBarLayout.totalScrollRange
-        val percentage = abs(offset) / maxScroll.toFloat()
-        with(binding) {
-            when {
-                percentage >= PERCENTAGE_TO_SHOW_FIXED_HEADER -> {
-                    if (!isFixedHeaderVisible) {
-                        tvToolbarTitle.startAlphaAnimation(100, View.VISIBLE)
-                        ibMenuVisibility.startAlphaAnimation(100, View.VISIBLE)
-                        tbFixedHeader.elevation =
-                            this@MainActivity.resources.getDimensionPixelSize(R.dimen.fixed_toolbar_elevation)
-                                .toFloat()
-                        isFixedHeaderVisible = true
-                    }
-                }
-                percentage >= PERCENTAGE_TO_HIDE_HEADER -> {
-                    if (isHeaderVisible) {
-                        clHeader.startAlphaAnimation(200, View.INVISIBLE)
-                        isHeaderVisible = false
-                    }
-                }
-                else -> {
-                    if (isFixedHeaderVisible) {
-                        tvToolbarTitle.startAlphaAnimation(100, View.INVISIBLE)
-                        ibMenuVisibility.startAlphaAnimation(100, View.INVISIBLE)
-                        tbFixedHeader.elevation = 0f
-                        isFixedHeaderVisible = false
-                    }
-                    if (!isHeaderVisible) {
-                        clHeader.startAlphaAnimation(200, View.VISIBLE)
-                        isHeaderVisible = true
-                    }
-                }
-            }
-        }
-    }
-
     private fun updateHeader() {
-        binding.tvCompleted.text = getString(
+        binding.headerLayout.tvCompleted.text = getString(
             R.string.main_completed_label,
             tasksAdapter.getDoneTasksSize()
         )
