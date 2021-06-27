@@ -14,7 +14,11 @@ import com.example.dudu.models.Task
 import com.example.dudu.util.Constants
 import com.example.dudu.util.DateFormatter
 import com.example.dudu.util.DatePickerFragment
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.*
 import java.util.*
+
 
 class CreateTaskActivity : AppCompatActivity()  {
 
@@ -25,7 +29,7 @@ class CreateTaskActivity : AppCompatActivity()  {
             activity.startActivityForResult(intent, requestCode)
         }
 
-        fun startActivityForResult(activity:Activity, requestCode: Int) {
+        fun startActivityForResult(activity: Activity, requestCode: Int) {
             val intent = Intent(activity, CreateTaskActivity::class.java)
             activity.startActivityForResult(intent, requestCode)
         }
@@ -161,15 +165,60 @@ class CreateTaskActivity : AppCompatActivity()  {
     ) {
         val data = Intent()
         if (isTaskCreation) {
-            // TODO: 6/25/21 create task in cache
             val task = Task(UUID.randomUUID().toString(), description, date, priority, false)
+            saveTask(task)
             data.putExtra(Constants.EXTRA_TASK, task)
             setResult(Constants.RESULT_TASK_CREATED, data)
         } else {
-            val task = this.task.copy(description = description, priority = priority, deadline = date)
+            val task = this.task.copy(
+                description = description,
+                priority = priority,
+                deadline = date
+            )
             data.putExtra(Constants.EXTRA_TASK, task)
             setResult(Constants.RESULT_TASK_EDITED, data)
         }
         finish()
+    }
+
+    private fun saveTask(task: Task) {
+        val tasks = mutableListOf<Task>()
+        try {
+            tasks.addAll(readFromCache())
+            tasks.add(task)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            if (e is FileNotFoundException) {
+                tasks.add(task)
+            }
+        }
+        writeToCache(tasks)
+    }
+
+    private fun writeToCache(tasks: List<Task>) {
+        try {
+            val data = Gson().toJson(tasks).toString()
+            val outputStream =
+                FileOutputStream(File("$cacheDir/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
+            outputStream.use { it.write(data.toByteArray()) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun readFromCache(): List<Task> {
+        return try {
+            val inputStream =
+                FileInputStream(File("$cacheDir/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
+            val size: Int = inputStream.available()
+            val buffer = ByteArray(size)
+            inputStream.use { it.read(buffer) }
+            val json = String(buffer, Charsets.UTF_8)
+            val type = object : TypeToken<List<Task>>() {}.type
+            Gson().fromJson(json, type)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            throw e
+        }
     }
 }

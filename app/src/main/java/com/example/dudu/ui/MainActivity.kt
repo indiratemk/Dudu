@@ -6,6 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.dudu.*
 import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.models.Task
@@ -14,7 +17,13 @@ import com.example.dudu.ui.tasks.TaskClickListener
 import com.example.dudu.ui.tasks.TasksAdapter
 import com.example.dudu.util.Constants
 import com.example.dudu.util.SwipeHelper
+import com.example.dudu.util.TasksReminderWorker
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
+import java.io.FileInputStream
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity(), TaskClickListener {
 
@@ -26,13 +35,17 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        scheduleReminderWork()
         initUI()
     }
 
     private fun initUI() {
         with(binding) {
             fabCreateTask.setOnClickListener {
-                CreateTaskActivity.startActivityForResult(this@MainActivity, Constants.REQUEST_CREATE_TASK)
+                CreateTaskActivity.startActivityForResult(
+                    this@MainActivity,
+                    Constants.REQUEST_CREATE_TASK
+                )
             }
             headerLayout.ibVisibility.apply {
                 setOnClickListener {
@@ -53,7 +66,9 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     }
 
     private fun initRV() {
-        tasksAdapter.setNewTasks(getMockTasks())
+        val tasks = getMockTasks()
+        tasks.addAll(getCachedTasks())
+        tasksAdapter.setNewTasks(tasks)
         binding.rvTasks.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = tasksAdapter
@@ -91,7 +106,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 val task = data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)
                 when (resultCode) {
                     Constants.RESULT_TASK_REMOVED -> {
-                        task?.let{ tasksAdapter.removeTask(it) }
+                        task?.let { tasksAdapter.removeTask(it) }
                     }
                     Constants.RESULT_TASK_EDITED -> {
                         task?.let { tasksAdapter.updateTask(it) }
@@ -128,6 +143,24 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         return tasks
     }
 
+    private fun getCachedTasks(): List<Task> {
+        val tasks = mutableListOf<Task>()
+        try {
+            val inputStream =
+                FileInputStream(File("$cacheDir/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
+            val size: Int = inputStream.available()
+            val buffer = ByteArray(size)
+            inputStream.use { it.read(buffer) }
+
+            val json = String(buffer, Charsets.UTF_8)
+            val type = object : TypeToken<List<Task>>() {}.type
+            tasks.addAll(Gson().fromJson<List<Task>>(json, type))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return tasks
+    }
+
     private fun updateHeader() {
         binding.headerLayout.tvCompleted.text = getString(
             R.string.main_completed_label,
@@ -142,5 +175,22 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
     override fun onTaskClick(task: Task) {
         CreateTaskActivity.startActivityForResult(this, task, Constants.REQUEST_EDIT_TASK)
+    }
+
+    private fun scheduleReminderWork() {
+        val currentDate = Calendar.getInstance()
+        val notificationDate = Calendar.getInstance()
+        notificationDate.set(Calendar.HOUR_OF_DAY, 6)
+        notificationDate.set(Calendar.MINUTE, 0)
+        notificationDate.set(Calendar.SECOND, 0)
+        if (notificationDate.before(currentDate)) {
+            notificationDate.add(Calendar.HOUR_OF_DAY, 24)
+        }
+        val timeDiff = notificationDate.timeInMillis.minus(currentDate.timeInMillis)
+        val dailyWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
+            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
+            .build()
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork(Constants.REMINDER_WORK_TAG, ExistingWorkPolicy.KEEP, dailyWorkRequest)
     }
 }

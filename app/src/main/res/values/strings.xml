@@ -1,5 +1,16 @@
 <resources>
     <string name="app_name">Dudu</string>
+    <string name="channel_id">dudu_channel</string>
+    <string name="channel_name">dudu channel</string>
+    <string name="channel_description">dudu channel</string>
+    <string name="notification_title">Дела на сегодня</string>
+    <plurals name="notification_content">
+        <item quantity="one">Сегодня вам надо сделать %d задачу, не забудьте =)</item>
+        <item quantity="two">Сегодня вам надо сделать %d задачи, не забудьте =)</item>
+        <item quantity="few">Сегодня вам надо сделать %d задачи, не забудьте =)</item>
+        <item quantity="many">Сегодня вам надо сделать %d задач, не забудьте =)</item>
+        <item quantity="other">Сегодня вам надо сделать %d задач, не забудьте =)</item>
+    </plurals>
     <string name="main_title">Мои дела</string>
     <string name="main_completed_label">Выполнено: %d</string>
     <string name="main_visibility_btn_desc">Показать/скрыть</string>
