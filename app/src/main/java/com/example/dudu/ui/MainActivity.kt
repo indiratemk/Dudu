@@ -168,6 +168,40 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         }
     }
 
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        val isSelected = savedInstanceState.getBoolean(Constants.EXTRA_SHOW_DONE_TASKS)
+        binding.headerLayout.ibVisibility.isSelected = isSelected
+        if (isSelected) {
+            tasksAdapter.showDoneTasks()
+        } else {
+            tasksAdapter.hideDoneTasks()
+        }
+        val doneTasks = savedInstanceState.getParcelableArrayList<Task>(Constants.EXTRA_DONE_TASKS)
+        doneTasks?.let {
+            tasksAdapter.doneTasks.clear()
+            tasksAdapter.doneTasks.addAll(it)
+        }
+        val undoneTasks = savedInstanceState.getParcelableArrayList<Task>(Constants.EXTRA_UNDONE_TASKS)
+        undoneTasks?.let {
+            tasksAdapter.undoneTasks.clear()
+            tasksAdapter.undoneTasks.addAll(it)
+        }
+        tasksAdapter.notifyDataSetChanged()
+        super.onRestoreInstanceState(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        val doneTasks = arrayListOf<Task>()
+        doneTasks.addAll(tasksAdapter.doneTasks)
+        val undoneTasks = arrayListOf<Task>()
+        undoneTasks.addAll(tasksAdapter.undoneTasks)
+
+        outState.putParcelableArrayList(Constants.EXTRA_DONE_TASKS, doneTasks)
+        outState.putParcelableArrayList(Constants.EXTRA_UNDONE_TASKS, undoneTasks)
+        outState.putBoolean(Constants.EXTRA_SHOW_DONE_TASKS, binding.headerLayout.ibVisibility.isSelected)
+        super.onSaveInstanceState(outState)
+    }
+
     private fun getMockTasks(): MutableList<Task> {
         val tasks = mutableListOf<Task>()
         val c = Calendar.getInstance()

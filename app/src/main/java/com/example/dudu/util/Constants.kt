@@ -3,6 +3,9 @@ package com.example.dudu.util
 object Constants {
 
     const val EXTRA_TASK = "EXTRA_TASK"
+    const val EXTRA_SHOW_DONE_TASKS = "EXTRA_SHOW_DONE_TASKS"
+    const val EXTRA_DONE_TASKS = "EXTRA_DONE_TASKS"
+    const val EXTRA_UNDONE_TASKS = "EXTRA_UNDONE_TASKS"
 
     const val REQUEST_CREATE_TASK = 701
     const val REQUEST_EDIT_TASK = 702
