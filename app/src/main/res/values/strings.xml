@@ -14,6 +14,7 @@
     <string name="main_title">Мои дела</string>
     <string name="main_completed_label">Выполнено: %d</string>
     <string name="main_visibility_btn_desc">Показать/скрыть</string>
+    <string name="main_theme_mode_btn_desc">Сменить тему приложения</string>
     <string name="main_add_task_btn_desc">Создать задачу</string>
 
     <string name="create_task_menu_action_save">Сохранить</string>

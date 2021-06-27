@@ -27,11 +27,20 @@
         android:textColor="@color/label_tertiary" />
 
     <ImageButton
+        android:id="@+id/ibChangeMode"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/btn_theme_mode"
+        android:contentDescription="@string/main_theme_mode_btn_desc"
+        android:foreground="?attr/selectableItemBackground" />
+
+    <ImageButton
         android:id="@+id/ibVisibility"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:background="@drawable/btn_visibility"
-        android:contentDescription="@string/main_visibility_btn_desc" />
+        android:contentDescription="@string/main_visibility_btn_desc"
+        android:foreground="?attr/selectableItemBackground" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/bottomGuideline"

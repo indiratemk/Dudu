@@ -1,17 +1,12 @@
 <resources>
-    <!-- Base application theme. -->
     <style name="Theme.Dudu" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
         <item name="colorPrimary">@color/back_primary</item>
         <item name="colorPrimaryVariant">@color/back_primary</item>
         <item name="colorOnPrimary">@color/label_primary</item>
-        <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/blue</item>
         <item name="colorSecondaryVariant">@color/blue</item>
         <item name="colorOnSecondary">@color/label_secondary</item>
-        <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
         <item name="android:actionMenuTextColor">@color/blue</item>
         <item name="android:datePickerDialogTheme">@style/DatePicker</item>
     </style>

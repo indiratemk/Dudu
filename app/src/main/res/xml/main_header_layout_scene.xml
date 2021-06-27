@@ -10,7 +10,7 @@
             <KeyAttribute
                 android:alpha="0"
                 app:framePosition="50"
-                app:motionTarget="@+id/tvCompleted" />
+                app:motionTarget="@id/tvCompleted" />
         </KeyFrameSet>
     </Transition>
 
@@ -20,31 +20,45 @@
             android:layout_height="wrap_content"
             android:scaleX="1.0"
             android:scaleY="1.0">
+
             <Layout
                 android:layout_marginStart="60dp"
-                app:layout_constraintBottom_toTopOf="@+id/tvCompleted"
+                app:layout_constraintBottom_toTopOf="@id/tvCompleted"
                 app:layout_constraintStart_toStartOf="parent" />
         </Constraint>
 
         <Constraint android:id="@+id/tvCompleted"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
+
             <Layout
                 android:layout_marginBottom="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/tvTitle" />
+                app:layout_constraintStart_toStartOf="@id/tvTitle" />
 
             <PropertySet android:alpha="1" />
+        </Constraint>
+
+        <Constraint android:id="@+id/ibChangeMode"
+            android:layout_width="24dp"
+            android:layout_height="24dp">
+
+            <Layout
+                android:layout_marginEnd="16dp"
+                app:layout_constraintTop_toTopOf="@id/ibVisibility"
+                app:layout_constraintBottom_toBottomOf="@id/ibVisibility"
+                app:layout_constraintEnd_toStartOf="@id/ibVisibility" />
         </Constraint>
 
         <Constraint android:id="@+id/ibVisibility"
             android:layout_width="24dp"
             android:layout_height="24dp">
+
             <Layout
                 android:layout_marginEnd="24dp"
-                app:layout_constraintBottom_toBottomOf="@+id/tvCompleted"
+                app:layout_constraintBottom_toBottomOf="@id/tvCompleted"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/tvCompleted" />
+                app:layout_constraintTop_toTopOf="@id/tvCompleted" />
         </Constraint>
     </ConstraintSet>
 
@@ -54,6 +68,7 @@
             android:layout_height="wrap_content"
             android:scaleX="0.62"
             android:scaleY="0.62">
+
             <Layout
                 android:layout_marginStart="16dp"
                 app:layout_constraintTop_toBottomOf="@id/bottomGuideline"
@@ -61,19 +76,32 @@
                 app:layout_constraintStart_toStartOf="parent" />
         </Constraint>
 
-        <Constraint android:id="@+id/tvCompleted"
+        <Constraint android:id="@id/tvCompleted"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
+
             <Layout
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/tvTitle" />
+                app:layout_constraintStart_toStartOf="@id/tvTitle" />
 
             <PropertySet android:alpha="0" />
+        </Constraint>
+
+        <Constraint android:id="@+id/ibChangeMode"
+            android:layout_width="24dp"
+            android:layout_height="24dp">
+
+            <Layout
+                android:layout_marginEnd="16dp"
+                app:layout_constraintTop_toTopOf="@id/ibVisibility"
+                app:layout_constraintBottom_toBottomOf="@id/ibVisibility"
+                app:layout_constraintEnd_toStartOf="@id/ibVisibility" />
         </Constraint>
 
         <Constraint android:id="@+id/ibVisibility"
             android:layout_width="24dp"
             android:layout_height="24dp">
+
             <Layout
                 android:layout_marginEnd="16dp"
                 app:layout_constraintTop_toBottomOf="@id/bottomGuideline"

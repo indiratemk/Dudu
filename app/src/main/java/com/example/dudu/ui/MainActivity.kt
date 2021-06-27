@@ -1,8 +1,10 @@
 package com.example.dudu.ui
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,9 +54,25 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                     isSelected = !isSelected
                     if (isSelected) {
                         tasksAdapter.showDoneTasks()
+                        rvTasks.smoothScrollToPosition(0)
                     } else {
                         tasksAdapter.hideDoneTasks()
                     }
+                }
+            }
+            headerLayout.ibChangeMode.apply {
+                val currentMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                isSelected = when (currentMode) {
+                    Configuration.UI_MODE_NIGHT_YES -> true
+                    else -> false
+                }
+                setOnClickListener {
+                    AppCompatDelegate.setDefaultNightMode(
+                        if (!isSelected)
+                            AppCompatDelegate.MODE_NIGHT_YES
+                        else
+                            AppCompatDelegate.MODE_NIGHT_NO
+                    )
                 }
             }
             headerLayout.ctToolbar.setOnClickListener {
