@@ -18,6 +18,7 @@ import com.example.dudu.ui.task.CreateTaskActivity
 import com.example.dudu.ui.tasks.TaskClickListener
 import com.example.dudu.ui.tasks.TasksAdapter
 import com.example.dudu.util.Constants
+import com.example.dudu.util.DateFormatter
 import com.example.dudu.util.SwipeHelper
 import com.example.dudu.util.TasksReminderWorker
 import com.google.gson.Gson
@@ -86,6 +87,33 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     private fun initRV() {
         val tasks = getMockTasks()
         tasks.addAll(getCachedTasks())
+        tasks.sortWith { o1, o2 ->
+            if (o1.deadline == null && o2.deadline == null) {
+                return@sortWith when {
+                    o1.priority > o2.priority -> -1
+                    o1.priority == o2.priority -> 0
+                    else -> 1
+                }
+            } else if (o1.deadline != null && o2.deadline == null) {
+                return@sortWith -1
+            } else if (o1.deadline == null && o2.deadline != null) {
+                return@sortWith 1
+            } else {
+                val date1 = DateFormatter.getDateWithoutTime(o1.deadline!!)
+                val date2 = DateFormatter.getDateWithoutTime(o2.deadline!!)
+                return@sortWith when {
+                    date1.before(date2) -> -1
+                    date1.after(date2) -> 1
+                    else -> {
+                        when {
+                            o1.priority > o2.priority -> -1
+                            o1.priority == o2.priority -> 0
+                            else -> 1
+                        }
+                    }
+                }
+            }
+        }
         tasksAdapter.setNewTasks(tasks)
         binding.rvTasks.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
