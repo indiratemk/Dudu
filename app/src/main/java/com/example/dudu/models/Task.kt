@@ -10,5 +10,5 @@ data class Task(
     val description: String,
     val deadline: Date?,
     val priority: Int,
-    var isDone: Boolean
+    val isDone: Boolean
 ) : Parcelable

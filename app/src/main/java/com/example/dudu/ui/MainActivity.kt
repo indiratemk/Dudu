@@ -214,8 +214,8 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         )
     }
 
-    override fun onTaskCheckedClick(position: Int) {
-        tasksAdapter.updateTaskStatus(position)
+    override fun onTaskCheckedClick(task: Task) {
+        tasksAdapter.updateTaskStatus(task)
         updateHeader()
     }
 

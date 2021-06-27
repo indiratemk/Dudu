@@ -4,7 +4,7 @@ import com.example.dudu.models.Task
 
 interface TaskClickListener {
 
-    fun onTaskCheckedClick(position: Int)
+    fun onTaskCheckedClick(task: Task)
 
     fun onTaskClick(task: Task)
 }

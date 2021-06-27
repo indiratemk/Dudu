@@ -5,6 +5,7 @@
     android:id="@+id/clTask"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
     android:background="@color/back_secondary"
     android:foreground="?attr/selectableItemBackground"
     android:gravity="center_vertical"
