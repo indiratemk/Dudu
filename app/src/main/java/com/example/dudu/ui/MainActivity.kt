@@ -85,36 +85,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     }
 
     private fun initRV() {
-        val tasks = getMockTasks()
-        tasks.addAll(getCachedTasks())
-        tasks.sortWith { o1, o2 ->
-            if (o1.deadline == null && o2.deadline == null) {
-                return@sortWith when {
-                    o1.priority > o2.priority -> -1
-                    o1.priority == o2.priority -> 0
-                    else -> 1
-                }
-            } else if (o1.deadline != null && o2.deadline == null) {
-                return@sortWith -1
-            } else if (o1.deadline == null && o2.deadline != null) {
-                return@sortWith 1
-            } else {
-                val date1 = DateFormatter.getDateWithoutTime(o1.deadline!!)
-                val date2 = DateFormatter.getDateWithoutTime(o2.deadline!!)
-                return@sortWith when {
-                    date1.before(date2) -> -1
-                    date1.after(date2) -> 1
-                    else -> {
-                        when {
-                            o1.priority > o2.priority -> -1
-                            o1.priority == o2.priority -> 0
-                            else -> 1
-                        }
-                    }
-                }
-            }
-        }
-        tasksAdapter.setNewTasks(tasks)
+        tasksAdapter.setTasks(getPreparedData())
         binding.rvTasks.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = tasksAdapter
@@ -202,20 +173,67 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         super.onSaveInstanceState(outState)
     }
 
+    private fun scheduleReminderWork() {
+        val currentDate = Calendar.getInstance()
+        val notificationDate = Calendar.getInstance()
+        notificationDate.set(Calendar.HOUR_OF_DAY, 6)
+        notificationDate.set(Calendar.MINUTE, 0)
+        notificationDate.set(Calendar.SECOND, 0)
+        if (notificationDate.before(currentDate)) {
+            notificationDate.add(Calendar.HOUR_OF_DAY, 24)
+        }
+        val timeDiff = notificationDate.timeInMillis.minus(currentDate.timeInMillis)
+        val dailyWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
+            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
+            .build()
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork(Constants.REMINDER_WORK_TAG, ExistingWorkPolicy.KEEP, dailyWorkRequest)
+    }
+
+    private fun getPreparedData(): MutableList<Task> {
+        val tasks = getMockTasks()
+        tasks.addAll(getCachedTasks())
+        tasks.sortWith { o1, o2 ->
+            if (o1.deadline == null && o2.deadline == null) {
+                return@sortWith when {
+                    o1.priority > o2.priority -> -1
+                    o1.priority == o2.priority -> 0
+                    else -> 1
+                }
+            } else if (o1.deadline != null && o2.deadline == null) {
+                return@sortWith -1
+            } else if (o1.deadline == null && o2.deadline != null) {
+                return@sortWith 1
+            } else {
+                return@sortWith when {
+                    o1.deadline!!.before(o2.deadline) -> -1
+                    o1.deadline.after(o2.deadline) -> 1
+                    else -> {
+                        when {
+                            o1.priority > o2.priority -> -1
+                            o1.priority == o2.priority -> 0
+                            else -> 1
+                        }
+                    }
+                }
+            }
+        }
+        return tasks
+    }
+
     private fun getMockTasks(): MutableList<Task> {
         val tasks = mutableListOf<Task>()
-        val c = Calendar.getInstance()
-        c.set(2020, 1, 1)
+        val currentDate = DateFormatter.getCurrentDateWithoutTime()
         for (i in 1..10) {
             val task = when {
                 i % 2 == 0 -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_short), Calendar.getInstance().time, 1, true)
+                    Task(i.toString(), "$i" + getString(R.string.task_short), currentDate, 1, true)
                 }
                 i % 3 == 0 -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_normal), c.time, 0, false)
+                    Task(i.toString(), "$i" + getString(R.string.task_normal), currentDate, 0, false)
                 }
                 else -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_long), Calendar.getInstance().time, 2, false)
+                    Task(i.toString(), "$i" + getString(R.string.task_long), currentDate, 2, false)
                 }
             }
             tasks.add(task)
@@ -255,22 +273,5 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
     override fun onTaskClick(task: Task) {
         CreateTaskActivity.startActivityForResult(this, task, Constants.REQUEST_EDIT_TASK)
-    }
-
-    private fun scheduleReminderWork() {
-        val currentDate = Calendar.getInstance()
-        val notificationDate = Calendar.getInstance()
-        notificationDate.set(Calendar.HOUR_OF_DAY, 6)
-        notificationDate.set(Calendar.MINUTE, 0)
-        notificationDate.set(Calendar.SECOND, 0)
-        if (notificationDate.before(currentDate)) {
-            notificationDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-        val timeDiff = notificationDate.timeInMillis.minus(currentDate.timeInMillis)
-        val dailyWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
-            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
-            .build()
-        WorkManager.getInstance(this)
-            .enqueueUniqueWork(Constants.REMINDER_WORK_TAG, ExistingWorkPolicy.KEEP, dailyWorkRequest)
     }
 }

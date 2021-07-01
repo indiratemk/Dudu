@@ -26,21 +26,25 @@ class TasksReminderWorker(
 
     override fun doWork(): Result {
         val tasks = getCachedTasks()
-        val currentDateInMillis = DateFormatter.getDateWithoutTime(Calendar.getInstance().time).time
+        val currentDateInMillis = DateFormatter.getCurrentDateWithoutTime().time
+
         val todayTasks = tasks.filter {
             it.deadline != null &&
-                    DateFormatter.getDateWithoutTime(it.deadline).time == currentDateInMillis &&
+                    it.deadline.time == currentDateInMillis &&
                     !it.isDone
         }
+
         if (todayTasks.isNotEmpty())
             sendReminderNotification(todayTasks.size)
         scheduleWork()
+
         return Result.success()
     }
 
     private fun sendReminderNotification(size: Int) {
         val notificationManager =
             appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 appContext.getString(R.string.channel_id),

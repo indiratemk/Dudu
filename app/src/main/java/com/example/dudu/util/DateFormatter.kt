@@ -11,11 +11,12 @@ object DateFormatter {
         return SimpleDateFormat(format, Locale("ru", "RU")).format(date)
     }
 
-    fun getDateWithoutTime(date: Date): Date {
-        return getDateFromString(formatDate(date, DF1), DF1)
-    }
-
-    private fun getDateFromString(date: String, format: String): Date {
-        return SimpleDateFormat(format, Locale("ru", "RU")).parse(date)!!
+    fun getCurrentDateWithoutTime(): Date {
+        val c = Calendar.getInstance()
+        c.set(Calendar.HOUR_OF_DAY, 0)
+        c.set(Calendar.MINUTE, 0)
+        c.set(Calendar.SECOND, 0)
+        c.set(Calendar.MILLISECOND, 0)
+        return c.time
     }
 }

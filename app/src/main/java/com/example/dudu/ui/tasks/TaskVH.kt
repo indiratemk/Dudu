@@ -75,8 +75,8 @@ class TaskVH(
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
                 return
             }
-            val currentDateInMillis = DateFormatter.getDateWithoutTime(Calendar.getInstance().time).time
-            val deadlineInMillis = DateFormatter.getDateWithoutTime(date).time
+            val currentDateInMillis = DateFormatter.getCurrentDateWithoutTime().time
+            val deadlineInMillis = date.time
             if (deadlineInMillis >= currentDateInMillis) {
                 cbStatus.buttonDrawable =
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)

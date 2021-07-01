@@ -40,7 +40,7 @@ class TasksAdapter(
             undoneTasks.size + doneTasks.size
     }
 
-    fun setNewTasks(tasks: List<Task>) {
+    fun setTasks(tasks: List<Task>) {
         val callback = DiffCallbackImpl(
             oldItems = emptyList(),
             newItems = undoneTasks

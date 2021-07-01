@@ -21,7 +21,8 @@ class DatePickerFragment(
 
     override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
         val c = Calendar.getInstance()
-        c.set(year, month, day)
+        c.set(year, month, day, 0, 0, 0)
+        c.set(Calendar.MILLISECOND, 0)
         onDateSelected(c.time)
     }
 }
