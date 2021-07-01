@@ -1,7 +1,9 @@
 package com.example.dudu.util
 
-import android.animation.ObjectAnimator
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -36,12 +38,6 @@ abstract class SwipeHelper :
                 rightButton.onSwipeEvent(position)
             }
             ItemTouchHelper.RIGHT -> {
-//                ObjectAnimator.ofFloat(viewHolder.itemView,
-//                    "translationX",
-//                    0f).apply {
-//                    duration = 2000
-//                    start()
-//                }
                 leftButton.onSwipeEvent(position)
             }
         }
