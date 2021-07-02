@@ -14,7 +14,19 @@ class TasksAdapter(
 
     private var isDoneTasksHidden = true
     var undoneTasks = mutableListOf<Task>()
-    var doneTasks = mutableListOf<Task>()
+    var tasks = mutableListOf<Task>()
+        set(value) {
+            field = value
+            undoneTasks = tasks.filter { !it.isDone }.toMutableList()
+
+            val callback = DiffCallbackImpl(
+                oldItems = emptyList(),
+                newItems = undoneTasks
+            )
+
+            val diffResult = DiffUtil.calculateDiff(callback)
+            diffResult.dispatchUpdatesTo(this)
+        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskVH {
         val inflater = LayoutInflater.from(parent.context)
@@ -25,11 +37,7 @@ class TasksAdapter(
         if (isDoneTasksHidden) {
             holder.bind(undoneTasks[position], listener)
         } else {
-            if (position < doneTasks.size) {
-                holder.bind(doneTasks[position], listener)
-            } else {
-                holder.bind(undoneTasks[position - doneTasks.size], listener)
-            }
+            holder.bind(tasks[position], listener)
         }
     }
 
@@ -37,20 +45,7 @@ class TasksAdapter(
         return if (isDoneTasksHidden)
             undoneTasks.size
         else
-            undoneTasks.size + doneTasks.size
-    }
-
-    fun setTasks(tasks: List<Task>) {
-        val callback = DiffCallbackImpl(
-            oldItems = emptyList(),
-            newItems = undoneTasks
-        )
-
-        doneTasks = tasks.filter { it.isDone }.toMutableList()
-        undoneTasks = tasks.filter { !it.isDone }.toMutableList()
-
-        val diffResult = DiffUtil.calculateDiff(callback)
-        diffResult.dispatchUpdatesTo(this)
+            tasks.size
     }
 
     fun showDoneTasks() {
@@ -58,7 +53,7 @@ class TasksAdapter(
 
         val callback = DiffCallbackImpl(
             oldItems = undoneTasks,
-            newItems = doneTasks + undoneTasks
+            newItems = tasks
         )
 
         val diffResult = DiffUtil.calculateDiff(callback)
@@ -68,8 +63,11 @@ class TasksAdapter(
     fun hideDoneTasks() {
         isDoneTasksHidden = true
 
+        undoneTasks.clear()
+        undoneTasks.addAll(tasks.filter { !it.isDone })
+
         val callback = DiffCallbackImpl(
-            oldItems = doneTasks + undoneTasks,
+            oldItems = tasks,
             newItems = undoneTasks
         )
 
@@ -78,32 +76,28 @@ class TasksAdapter(
     }
 
     fun removeTask(position: Int) {
-        val callback = if (isDoneTasksHidden) {
+        val callback: DiffCallbackImpl<Task> = if (isDoneTasksHidden) {
             val oldItems = mutableListOf<Task>()
             oldItems.addAll(undoneTasks)
+
+            val task = undoneTasks[position]
             undoneTasks.removeAt(position)
+            tasks.remove(task)
 
             DiffCallbackImpl(
                 oldItems = oldItems,
                 newItems = undoneTasks
             )
         } else {
-            val oldItems = doneTasks + undoneTasks
+            val oldItems = mutableListOf<Task>()
+            oldItems.addAll(tasks)
 
-            if (position < doneTasks.size) {
-                doneTasks.removeAt(position)
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks
-                )
-            } else {
-                undoneTasks.removeAt(position - doneTasks.size)
+            tasks.removeAt(position)
 
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks
-                )
-            }
+            DiffCallbackImpl(
+                oldItems = oldItems,
+                newItems = tasks
+            )
         }
 
         val diffResult = DiffUtil.calculateDiff(callback)
@@ -111,72 +105,40 @@ class TasksAdapter(
     }
 
     fun removeTask(task: Task) {
-        val callback = if (isDoneTasksHidden) {
-            val oldItems = mutableListOf<Task>()
-            oldItems.addAll(undoneTasks)
-            undoneTasks.remove(task)
-
-            DiffCallbackImpl(
-                oldItems = oldItems,
-                newItems = undoneTasks
-            )
+        val position: Int = if (isDoneTasksHidden) {
+            undoneTasks.indexOf(task)
         } else {
-            val oldItems = doneTasks + undoneTasks
-            val position = doneTasks.indexOfFirst { it.id == task.id }
-
-            if (position != -1) {
-                doneTasks.remove(task)
-
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks
-                )
-            } else {
-                undoneTasks.remove(task)
-
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks
-                )
-            }
+            tasks.indexOf(task)
         }
-
-        val diffResult = DiffUtil.calculateDiff(callback)
-        diffResult.dispatchUpdatesTo(this)
+        removeTask(position)
     }
 
     fun updateTaskStatus(position: Int) {
-        val callback = if (isDoneTasksHidden) {
+        val callback: DiffCallbackImpl<Task> = if (isDoneTasksHidden) {
             val oldItems = mutableListOf<Task>()
             oldItems.addAll(undoneTasks)
 
             val task = undoneTasks[position]
             undoneTasks[position] = task.copy(isDone = !task.isDone)
 
+            val index = tasks.indexOf(task)
+            tasks[index] = undoneTasks[position]
+
             DiffCallbackImpl(
                 oldItems = oldItems,
                 newItems = undoneTasks
             )
         } else {
-            val oldItems = doneTasks + undoneTasks
+            val oldItems = mutableListOf<Task>()
+            oldItems.addAll(tasks)
 
-            if (position < doneTasks.size) {
-                val task = doneTasks.removeAt(position)
-                undoneTasks.add(task.copy(isDone = !task.isDone))
+            val task = tasks[position]
+            tasks[position] = task.copy(isDone = !task.isDone)
 
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks
-                )
-            } else {
-                val task = undoneTasks[position - doneTasks.size]
-                undoneTasks[position - doneTasks.size] = task.copy(isDone = !task.isDone)
-
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks
-                )
-            }
+            DiffCallbackImpl(
+                oldItems = oldItems,
+                newItems = tasks
+            )
         }
 
         val diffResult = DiffUtil.calculateDiff(callback)
@@ -184,12 +146,15 @@ class TasksAdapter(
     }
 
     fun updateTaskStatus(task: Task) {
-        val callback = if (isDoneTasksHidden) {
+        val callback: DiffCallbackImpl<Task> = if (isDoneTasksHidden) {
             val oldItems = mutableListOf<Task>()
             oldItems.addAll(undoneTasks)
 
             val position = undoneTasks.indexOfFirst { it.id == task.id }
             undoneTasks[position] = task
+
+            val index = tasks.indexOfFirst { it.id == task.id }
+            tasks[index] = task
 
             DiffCallbackImpl(
                 oldItems = oldItems,
@@ -198,28 +163,18 @@ class TasksAdapter(
                 areContentsTheSame = { oldItem, newItem -> oldItem.isDone == newItem.isDone }
             )
         } else {
-            val oldItems = doneTasks + undoneTasks
-            var position = doneTasks.indexOfFirst { it.id == task.id }
+            val oldItems = mutableListOf<Task>()
+            oldItems.addAll(tasks)
 
-            if (position != -1) {
-                doneTasks.removeAt(position)
-                undoneTasks.add(task)
+            val position = tasks.indexOfFirst { it.id == task.id }
+            tasks[position] = task
 
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks
-                )
-            } else {
-                position = undoneTasks.indexOfFirst { it.id == task.id }
-                undoneTasks[position] = task
-
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks,
-                    areTheSame = { oldItem, newItem -> oldItem.id == newItem.id },
-                    areContentsTheSame = { oldItem, newItem -> oldItem.isDone == newItem.isDone }
-                )
-            }
+            DiffCallbackImpl(
+                oldItems = oldItems,
+                newItems = tasks,
+                areTheSame = { oldItem, newItem -> oldItem.id == newItem.id },
+                areContentsTheSame = { oldItem, newItem -> oldItem.isDone == newItem.isDone }
+            )
         }
 
         val diffResult = DiffUtil.calculateDiff(callback)
@@ -227,12 +182,15 @@ class TasksAdapter(
     }
 
     fun updateTask(task: Task) {
-        val callback = if (isDoneTasksHidden) {
+        val callback: DiffCallbackImpl<Task> = if (isDoneTasksHidden) {
             val oldItems = mutableListOf<Task>()
             oldItems.addAll(undoneTasks)
 
             val position = undoneTasks.indexOfFirst { task.id == it.id }
             undoneTasks[position] = task
+
+            val index = tasks.indexOfFirst { task.id == it.id }
+            tasks[index] = task
 
             DiffCallbackImpl(
                 oldItems = oldItems,
@@ -240,27 +198,17 @@ class TasksAdapter(
                 areTheSame = { oldItem, newItem -> oldItem.id == newItem.id }
             )
         } else {
-            val oldItems = doneTasks + undoneTasks
-            var position = doneTasks.indexOfFirst { task.id == it.id }
+            val oldItems = mutableListOf<Task>()
+            oldItems.addAll(tasks)
 
-            if (position != -1) {
-                doneTasks[position] = task
+            val position = tasks.indexOfFirst { task.id == it.id }
+            tasks[position] = task
 
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks,
-                    areTheSame = { oldItem, newItem -> oldItem.id == newItem.id }
-                )
-            } else {
-                position = undoneTasks.indexOfFirst { task.id == it.id }
-                undoneTasks[position] = task
-
-                DiffCallbackImpl(
-                    oldItems = oldItems,
-                    newItems = doneTasks + undoneTasks,
-                    areTheSame = { oldItem, newItem -> oldItem.id == newItem.id }
-                )
-            }
+            DiffCallbackImpl(
+                oldItems = oldItems,
+                newItems = tasks,
+                areTheSame = { oldItem, newItem -> oldItem.id == newItem.id }
+            )
         }
 
         val diffResult = DiffUtil.calculateDiff(callback)
@@ -268,22 +216,26 @@ class TasksAdapter(
     }
 
     fun addTask(task: Task) {
-        val callback = if (isDoneTasksHidden) {
+        val callback: DiffCallbackImpl<Task> = if (isDoneTasksHidden) {
             val oldItems = mutableListOf<Task>()
             oldItems.addAll(undoneTasks)
+
             undoneTasks.add(task)
+            tasks.add(task)
 
             DiffCallbackImpl(
                 oldItems = oldItems,
                 newItems = undoneTasks
             )
         } else {
-            val oldItems = doneTasks + undoneTasks
-            undoneTasks.add(task)
+            val oldItems = mutableListOf<Task>()
+            oldItems.addAll(tasks)
+
+            tasks.add(task)
 
             DiffCallbackImpl(
                 oldItems = oldItems,
-                newItems = doneTasks + undoneTasks
+                newItems = tasks
             )
         }
 
@@ -291,5 +243,5 @@ class TasksAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
-    fun getDoneTasksSize() = doneTasks.size + undoneTasks.filter { it.isDone }.size
+    fun getDoneTasksSize() = tasks.filter { it.isDone }.size
 }
