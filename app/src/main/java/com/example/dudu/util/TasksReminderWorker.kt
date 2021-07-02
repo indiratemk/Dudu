@@ -87,7 +87,7 @@ class TasksReminderWorker(
             .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
             .build()
         WorkManager.getInstance(applicationContext)
-            .enqueueUniqueWork(Constants.REMINDER_WORK_TAG, ExistingWorkPolicy.KEEP, dailyWorkRequest)
+            .enqueue(dailyWorkRequest)
     }
 
     private fun getCachedTasks(): List<Task> {

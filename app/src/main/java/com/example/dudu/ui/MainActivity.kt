@@ -187,7 +187,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
             .build()
         WorkManager.getInstance(this)
-            .enqueueUniqueWork(Constants.REMINDER_WORK_TAG, ExistingWorkPolicy.KEEP, dailyWorkRequest)
+            .enqueue(dailyWorkRequest)
     }
 
     private fun getPreparedData(): MutableList<Task> {
