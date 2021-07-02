@@ -29,9 +29,8 @@
         android:layout_height="20dp"
         android:layout_marginStart="12dp"
         android:contentDescription="@null"
-        app:layout_constraintBottom_toBottomOf="@+id/cbStatus"
         app:layout_constraintStart_toEndOf="@+id/cbStatus"
-        app:layout_constraintTop_toTopOf="@+id/cbStatus"
+        app:layout_constraintTop_toTopOf="@+id/tvDescription"
         app:srcCompat="@drawable/ic_high_priority" />
 
     <TextView
