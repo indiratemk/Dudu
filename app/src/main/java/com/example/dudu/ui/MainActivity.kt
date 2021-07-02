@@ -16,10 +16,7 @@ import com.example.dudu.models.Task
 import com.example.dudu.ui.task.CreateTaskActivity
 import com.example.dudu.ui.tasks.TaskClickListener
 import com.example.dudu.ui.tasks.TasksAdapter
-import com.example.dudu.util.Constants
-import com.example.dudu.util.DateFormatter
-import com.example.dudu.util.SwipeHelper
-import com.example.dudu.util.TasksReminderWorker
+import com.example.dudu.util.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
@@ -108,6 +105,14 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 ) {
                     tasksAdapter.removeTask(it)
                     updateHeader()
+                    UIUtil.showSnackbar(
+                        binding.coordinatorContainer,
+                        getString(R.string.main_task_removed_message),
+                        getString(R.string.main_task_removed_action)
+                    ) {
+                        tasksAdapter.restoreTask()
+                        binding.rvTasks.smoothScrollToPosition(tasksAdapter.itemCount - 1)
+                    }
                 }
             }
         }

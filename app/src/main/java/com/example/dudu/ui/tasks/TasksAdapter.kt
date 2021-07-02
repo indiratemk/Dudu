@@ -27,6 +27,7 @@ class TasksAdapter(
             val diffResult = DiffUtil.calculateDiff(callback)
             diffResult.dispatchUpdatesTo(this)
         }
+    private var removedTask: Task? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskVH {
         val inflater = LayoutInflater.from(parent.context)
@@ -75,6 +76,12 @@ class TasksAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
+    fun restoreTask() {
+        removedTask?.let{
+            addTask(it)
+        }
+    }
+
     fun removeTask(position: Int) {
         val callback: DiffCallbackImpl<Task> = if (isDoneTasksHidden) {
             val oldItems = mutableListOf<Task>()
@@ -83,6 +90,7 @@ class TasksAdapter(
             val task = undoneTasks[position]
             undoneTasks.removeAt(position)
             tasks.remove(task)
+            removedTask = task
 
             DiffCallbackImpl(
                 oldItems = oldItems,
@@ -92,6 +100,7 @@ class TasksAdapter(
             val oldItems = mutableListOf<Task>()
             oldItems.addAll(tasks)
 
+            removedTask = tasks[position]
             tasks.removeAt(position)
 
             DiffCallbackImpl(

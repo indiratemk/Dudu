@@ -16,6 +16,8 @@
     <string name="main_visibility_btn_desc">Показать/скрыть</string>
     <string name="main_theme_mode_btn_desc">Сменить тему приложения</string>
     <string name="main_add_task_btn_desc">Создать задачу</string>
+    <string name="main_task_removed_message">Задача удалена</string>
+    <string name="main_task_removed_action">Отменить</string>
 
     <string name="create_task_menu_action_save">Сохранить</string>
     <string name="create_task_input_hint">Что надо сделать…</string>
