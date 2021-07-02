@@ -59,7 +59,14 @@ class TasksReminderWorker(
         val intent = Intent(appContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(appContext, 0, intent, 0)
+
+        val pendingIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.getActivity(appContext,
+                0, intent, PendingIntent.FLAG_IMMUTABLE)
+        } else {
+            PendingIntent.getActivity(appContext,
+                0, intent, 0)
+        }
 
         val builder = NotificationCompat.Builder(appContext, appContext.getString(R.string.channel_id))
             .setSmallIcon(R.drawable.ic_checked)
