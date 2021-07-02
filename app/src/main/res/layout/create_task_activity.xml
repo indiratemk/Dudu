@@ -91,26 +91,6 @@
                 android:background="@color/support_separator" />
 
             <Button
-                android:id="@+id/btnReset"
-                style="@style/Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:background="@android:color/transparent"
-                android:enabled="false"
-                android:foreground="?attr/selectableItemBackground"
-                android:gravity="start|center_vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="12dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="12dp"
-                android:text="@string/create_task_btn_reset"
-                android:textColor="@drawable/btn_red_color"
-                app:icon="@drawable/ic_reset"
-                app:iconPadding="12dp"
-                app:iconTint="@drawable/btn_red_color" />
-
-            <Button
                 android:id="@+id/btnRemove"
                 style="@style/Body"
                 android:layout_width="match_parent"

@@ -44,7 +44,6 @@ class CreateTaskActivity : AppCompatActivity()  {
     private val datePicker = DatePickerFragment(onDateSelected = {
         date = it
         with(binding) {
-            btnReset.isEnabled = true
             deadlineLayout.switchDeadline.isChecked = true
             date?.let { date ->
                 deadlineLayout.tvDate.text = DateFormatter.formatDate(date, DateFormatter.DF2)
@@ -87,14 +86,8 @@ class CreateTaskActivity : AppCompatActivity()  {
                 true
             }
             btnRemove.visibility = if (isTaskCreation) View.GONE else View.VISIBLE
-            btnReset.visibility = if (isTaskCreation) View.VISIBLE else View.GONE
             etDescription.doAfterTextChanged {
                 tvDescriptionError.visibility = View.GONE
-                btnReset.isEnabled = it.toString().trim().isNotEmpty()
-            }
-            btnReset.setOnClickListener {
-                clearData()
-                btnReset.isEnabled = false
             }
             btnRemove.setOnClickListener {
                 val data = Intent()
@@ -104,6 +97,18 @@ class CreateTaskActivity : AppCompatActivity()  {
             }
             deadlineLayout.clDeadline.setOnClickListener {
                 datePicker.show(supportFragmentManager, "datePicker")
+            }
+            deadlineLayout.switchDeadline.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    if (date == null) {
+                        date = DateFormatter.getCurrentDateWithoutTime()
+                        deadlineLayout.tvDate.text = DateFormatter.formatDate(date!!, DateFormatter.DF2)
+                        deadlineLayout.tvDate.visibility = View.VISIBLE
+                    }
+                } else {
+                    date = null
+                    deadlineLayout.tvDate.visibility = View.GONE
+                }
             }
         }
         initPriorities()
@@ -143,18 +148,6 @@ class CreateTaskActivity : AppCompatActivity()  {
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
-        }
-    }
-
-    private fun clearData() {
-        with(binding) {
-            etDescription.setText("")
-            etDescription.clearFocus()
-            tvDescriptionError.visibility = View.GONE
-            spinnerPriority.setSelection(0)
-            deadlineLayout.tvDate.text = ""
-            deadlineLayout.tvDate.visibility = View.GONE
-            deadlineLayout.switchDeadline.isChecked = false
         }
     }
 
