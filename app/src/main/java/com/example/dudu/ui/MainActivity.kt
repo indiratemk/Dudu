@@ -3,31 +3,34 @@ package com.example.dudu.ui
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.dudu.*
+import com.example.dudu.data.local.Task
 import com.example.dudu.databinding.MainActivityBinding
-import com.example.dudu.models.Task
 import com.example.dudu.ui.task.CreateTaskActivity
-import com.example.dudu.ui.tasks.TaskClickListener
-import com.example.dudu.ui.tasks.TasksAdapter
+import com.example.dudu.ui.tasks.*
 import com.example.dudu.util.*
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.io.File
-import java.io.FileInputStream
+import kotlinx.coroutines.flow.collect
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity(), TaskClickListener {
 
+    private val tasksViewModel: TasksViewModel by viewModels {
+        TasksViewModelFactory((application as DuduApplication).repository)
+    }
+
     private lateinit var binding: MainActivityBinding
-    private val tasksAdapter = TasksAdapter(this)
+    private val tasksAdapter = TaskAdapter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +39,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
         scheduleReminderWork()
         initUI()
+        subscribeObservers()
     }
 
     private fun initUI() {
@@ -48,13 +52,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             }
             headerLayout.ibVisibility.apply {
                 setOnClickListener {
-                    isSelected = !isSelected
-                    if (isSelected) {
-                        tasksAdapter.showDoneTasks()
-                        rvTasks.smoothScrollToPosition(0)
-                    } else {
-                        tasksAdapter.hideDoneTasks()
-                    }
+                    tasksViewModel.setShowDoneTasks(!isSelected)
                 }
             }
             headerLayout.ibChangeMode.apply {
@@ -77,11 +75,9 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             }
         }
         initRV()
-        updateHeader()
     }
 
     private fun initRV() {
-        tasksAdapter.tasks = getPreparedData()
         binding.rvTasks.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = tasksAdapter
@@ -92,9 +88,12 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.green),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
-                ) {
-                    tasksAdapter.updateTaskStatus(it)
-                    updateHeader()
+                ) { position ->
+                    val task = tasksAdapter.tasks[position]
+                    tasksViewModel.onTaskCheckedChanged(task, !task.isDone)
+                    if (binding.headerLayout.ibVisibility.isSelected) {
+                        tasksAdapter.notifyItemChanged(position)
+                    }
                 }
             }
 
@@ -102,17 +101,9 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.red),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
-                ) {
-                    tasksAdapter.removeTask(it)
-                    updateHeader()
-                    UIUtil.showSnackbar(
-                        binding.coordinatorContainer,
-                        getString(R.string.main_task_removed_message),
-                        getString(R.string.main_task_removed_action)
-                    ) {
-                        tasksAdapter.restoreTask()
-                        binding.rvTasks.smoothScrollToPosition(tasksAdapter.itemCount - 1)
-                    }
+                ) { position ->
+                    val task = tasksAdapter.tasks[position]
+                    tasksViewModel.onTaskRemoved(task)
                 }
             }
         }
@@ -120,53 +111,60 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         touchHelper.attachToRecyclerView(binding.rvTasks)
     }
 
+    private fun subscribeObservers() {
+        tasksViewModel.tasks.observe(this, { tasks ->
+            tasksAdapter.updateTasks(tasks)
+            with(binding) {
+                if (tasksAdapter.itemCount == 0) {
+                    rvTasks.visibility = View.GONE
+                    tvEmpty.visibility = View.VISIBLE
+                } else {
+                    rvTasks.visibility = View.VISIBLE
+                    tvEmpty.visibility = View.GONE
+                }
+            }
+        })
+
+        tasksViewModel.doneTasksCount.observe(this, {
+            binding.headerLayout.tvCompleted.text = getString(
+                R.string.main_completed_label, it
+            )
+        })
+
+        tasksViewModel.showDone.observe(this, {
+            binding.headerLayout.ibVisibility.isSelected = it
+        })
+
+        lifecycleScope.launchWhenStarted {
+            tasksViewModel.taskEvent.collect { event ->
+                when (event) {
+                    is TaskEvent.ShouldUndoRemove -> {
+                        UIUtil.showSnackbar(
+                            binding.coordinatorContainer,
+                            getString(R.string.main_task_removed_message),
+                            getString(R.string.main_task_removed_action)
+                        ) {
+                            tasksViewModel.onUndoTaskRemove(event.task)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             Constants.REQUEST_EDIT_TASK -> {
-                val task = data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)
                 when (resultCode) {
                     Constants.RESULT_TASK_REMOVED -> {
-                        task?.let { tasksAdapter.removeTask(it) }
-                    }
-                    Constants.RESULT_TASK_EDITED -> {
-                        task?.let { tasksAdapter.updateTask(it) }
+                        data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)?.let {
+                            tasksViewModel.onTaskRemoved(it)
+                        }
                     }
                 }
             }
-            Constants.REQUEST_CREATE_TASK -> {
-                val task = data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)
-                if (resultCode == Constants.RESULT_TASK_CREATED) {
-                    task?.let { tasksAdapter.addTask(it) }
-                }
-            }
         }
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        val tasks = savedInstanceState.getParcelableArrayList<Task>(Constants.EXTRA_TASKS)
-        tasks?.let {
-            tasksAdapter.tasks = it.toMutableList()
-        }
-        updateHeader()
-
-        val isSelected = savedInstanceState.getBoolean(Constants.EXTRA_SHOW_DONE_TASKS)
-        binding.headerLayout.ibVisibility.isSelected = isSelected
-        if (isSelected) {
-            tasksAdapter.showDoneTasks()
-        } else {
-            tasksAdapter.hideDoneTasks()
-        }
-        super.onRestoreInstanceState(savedInstanceState)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        val tasks = arrayListOf<Task>()
-        tasks.addAll(tasksAdapter.tasks)
-
-        outState.putParcelableArrayList(Constants.EXTRA_TASKS, tasks)
-        outState.putBoolean(Constants.EXTRA_SHOW_DONE_TASKS, binding.headerLayout.ibVisibility.isSelected)
-        super.onSaveInstanceState(outState)
     }
 
     private fun scheduleReminderWork() {
@@ -186,88 +184,11 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             .enqueue(dailyWorkRequest)
     }
 
-    private fun getPreparedData(): MutableList<Task> {
-        val tasks = getMockTasks()
-        tasks.addAll(getCachedTasks())
-        tasks.sortWith { o1, o2 ->
-            if (o1.deadline == null && o2.deadline == null) {
-                return@sortWith when {
-                    o1.priority > o2.priority -> -1
-                    o1.priority == o2.priority -> 0
-                    else -> 1
-                }
-            } else if (o1.deadline != null && o2.deadline == null) {
-                return@sortWith -1
-            } else if (o1.deadline == null && o2.deadline != null) {
-                return@sortWith 1
-            } else {
-                return@sortWith when {
-                    o1.deadline!!.before(o2.deadline) -> -1
-                    o1.deadline.after(o2.deadline) -> 1
-                    else -> {
-                        when {
-                            o1.priority > o2.priority -> -1
-                            o1.priority == o2.priority -> 0
-                            else -> 1
-                        }
-                    }
-                }
-            }
-        }
-        return tasks
-    }
-
-    private fun getMockTasks(): MutableList<Task> {
-        val tasks = mutableListOf<Task>()
-        val currentDate = DateFormatter.getCurrentDateWithoutTime()
-        for (i in 1..10) {
-            val task = when {
-                i % 2 == 0 -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_short), currentDate, 1, true)
-                }
-                i % 3 == 0 -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_normal), currentDate, 0, false)
-                }
-                else -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_long), currentDate, 2, false)
-                }
-            }
-            tasks.add(task)
-        }
-        return tasks
-    }
-
-    private fun getCachedTasks(): List<Task> {
-        val tasks = mutableListOf<Task>()
-        try {
-            val inputStream =
-                FileInputStream(File("$cacheDir/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
-            val size: Int = inputStream.available()
-            val buffer = ByteArray(size)
-            inputStream.use { it.read(buffer) }
-
-            val json = String(buffer, Charsets.UTF_8)
-            val type = object : TypeToken<List<Task>>() {}.type
-            tasks.addAll(Gson().fromJson<List<Task>>(json, type))
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return tasks
-    }
-
-    private fun updateHeader() {
-        binding.headerLayout.tvCompleted.text = getString(
-            R.string.main_completed_label,
-            tasksAdapter.getDoneTasksSize()
-        )
-    }
-
-    override fun onTaskCheckedClick(task: Task) {
-        tasksAdapter.updateTaskStatus(task)
-        updateHeader()
-    }
-
     override fun onTaskClick(task: Task) {
         CreateTaskActivity.startActivityForResult(this, task, Constants.REQUEST_EDIT_TASK)
+    }
+
+    override fun onCheckBoxClick(task: Task, isChecked: Boolean) {
+        tasksViewModel.onTaskCheckedChanged(task, isChecked)
     }
 }

@@ -7,7 +7,8 @@ object DateFormatter {
     const val DF1 = "dd.MM.yyyy"
     const val DF2 = "d MMMM yyyy"
 
-    fun formatDate(date: Date, format: String): String {
+    fun formatDate(timestamp: Long, format: String): String {
+        val date = Date(timestamp)
         return SimpleDateFormat(format, Locale("ru", "RU")).format(date)
     }
 

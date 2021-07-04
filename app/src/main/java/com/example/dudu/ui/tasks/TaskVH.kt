@@ -18,7 +18,7 @@ class TaskVH(
         with(binding) {
             cbStatus.isChecked = task.isDone
             cbStatus.setOnClickListener {
-                listener.onTaskCheckedClick(task.copy(isDone = !task.isDone))
+                listener.onCheckBoxClick(task, cbStatus.isChecked)
             }
             clTask.setOnClickListener { listener.onTaskClick(task) }
             tvDescription.text = task.description
