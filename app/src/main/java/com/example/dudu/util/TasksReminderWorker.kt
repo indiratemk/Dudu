@@ -10,7 +10,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.work.*
 import com.example.dudu.R
-import com.example.dudu.models.Task
+import com.example.dudu.data.local.Task
 import com.example.dudu.ui.MainActivity
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -28,14 +28,14 @@ class TasksReminderWorker(
         val tasks = getCachedTasks()
         val currentDateInMillis = DateFormatter.getCurrentDateWithoutTime().time
 
-        val todayTasks = tasks.filter {
-            it.deadline != null &&
-                    it.deadline.time == currentDateInMillis &&
-                    !it.isDone
-        }
+//        val todayTasks = tasks.filter {
+//            it.deadline != null &&
+//                    it.deadline == currentDateInMillis &&
+//                    !it.isDone
+//        }
 
-        if (todayTasks.isNotEmpty())
-            sendReminderNotification(todayTasks.size)
+//        if (todayTasks.isNotEmpty())
+        sendReminderNotification(1)
         scheduleWork()
 
         return Result.success()

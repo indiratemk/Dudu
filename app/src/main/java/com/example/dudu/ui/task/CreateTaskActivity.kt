@@ -5,18 +5,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
+import com.example.dudu.DuduApplication
 import com.example.dudu.R
+import com.example.dudu.data.Priority
+import com.example.dudu.data.local.Task
 import com.example.dudu.databinding.CreateTaskActivityBinding
-import com.example.dudu.models.Priority
-import com.example.dudu.models.Task
 import com.example.dudu.util.Constants
 import com.example.dudu.util.DateFormatter
 import com.example.dudu.util.DatePickerFragment
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.io.*
 import java.util.*
 
 
@@ -33,6 +32,10 @@ class CreateTaskActivity : AppCompatActivity()  {
             val intent = Intent(activity, CreateTaskActivity::class.java)
             activity.startActivityForResult(intent, requestCode)
         }
+    }
+
+    private val createTaskViewModel: CreateTaskViewModel by viewModels {
+        CreateTaskViewModelFactory((application as DuduApplication).repository)
     }
 
     private lateinit var binding: CreateTaskActivityBinding
@@ -74,11 +77,7 @@ class CreateTaskActivity : AppCompatActivity()  {
                         tvDescriptionError.visibility = View.VISIBLE
                     } else {
                         val description = etDescription.text.trim().toString()
-                        saveTask(
-                            description,
-                            priority,
-                            if (binding.deadlineLayout.switchDeadline.isChecked) date else null
-                        )
+                        saveTask(description, priority, timestamp)
                     }
                 }
                 true
@@ -155,62 +154,17 @@ class CreateTaskActivity : AppCompatActivity()  {
         priority: Int,
         deadline: Long
     ) {
-        val data = Intent()
         if (isTaskCreation) {
-            val task = Task(UUID.randomUUID().toString(), description, date, priority, false)
-            saveTask(task)
-            data.putExtra(Constants.EXTRA_TASK, task)
-            setResult(Constants.RESULT_TASK_CREATED, data)
+            val task = Task(UUID.randomUUID().toString(), description, deadline, priority, false)
+            createTaskViewModel.addTask(task)
         } else {
             val task = this.task.copy(
                 description = description,
                 priority = priority,
-                deadline = date
+                deadline = deadline
             )
-            data.putExtra(Constants.EXTRA_TASK, task)
-            setResult(Constants.RESULT_TASK_EDITED, data)
+            createTaskViewModel.updateTask(task)
         }
         finish()
-    }
-
-    private fun saveTask(task: Task) {
-        val tasks = mutableListOf<Task>()
-        try {
-            tasks.addAll(readFromCache())
-            tasks.add(task)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            if (e is FileNotFoundException) {
-                tasks.add(task)
-            }
-        }
-        writeToCache(tasks)
-    }
-
-    private fun writeToCache(tasks: List<Task>) {
-        try {
-            val data = Gson().toJson(tasks).toString()
-            val outputStream =
-                FileOutputStream(File("$cacheDir/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
-            outputStream.use { it.write(data.toByteArray()) }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun readFromCache(): List<Task> {
-        return try {
-            val inputStream =
-                FileInputStream(File("$cacheDir/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
-            val size: Int = inputStream.available()
-            val buffer = ByteArray(size)
-            inputStream.use { it.read(buffer) }
-            val json = String(buffer, Charsets.UTF_8)
-            val type = object : TypeToken<List<Task>>() {}.type
-            Gson().fromJson(json, type)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            throw e
-        }
     }
 }

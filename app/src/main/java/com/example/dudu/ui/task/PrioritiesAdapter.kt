@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
 import com.example.dudu.R
-import com.example.dudu.models.Priority
+import com.example.dudu.data.Priority
 
 
 class PrioritiesAdapter(
