@@ -40,15 +40,13 @@ class CreateTaskActivity : AppCompatActivity()  {
     private lateinit var task: Task
     private var priority = Priority.NONE.value
     private var isTaskCreation = true
-    private var date: Date? = null
+    private var timestamp = 0L
     private val datePicker = DatePickerFragment(onDateSelected = {
-        date = it
+        timestamp = it.time
         with(binding) {
             deadlineLayout.switchDeadline.isChecked = true
-            date?.let { date ->
-                deadlineLayout.tvDate.text = DateFormatter.formatDate(date, DateFormatter.DF2)
-                deadlineLayout.tvDate.visibility = View.VISIBLE
-            }
+            deadlineLayout.tvDate.text = DateFormatter.formatDate(timestamp, DateFormatter.DF2)
+            deadlineLayout.tvDate.visibility = View.VISIBLE
         }
     })
 
@@ -100,13 +98,14 @@ class CreateTaskActivity : AppCompatActivity()  {
             }
             deadlineLayout.switchDeadline.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
-                    if (date == null) {
-                        date = DateFormatter.getCurrentDateWithoutTime()
-                        deadlineLayout.tvDate.text = DateFormatter.formatDate(date!!, DateFormatter.DF2)
+                    if (timestamp == 0L) {
+                        timestamp = DateFormatter.getCurrentDateWithoutTime().time
+                        deadlineLayout.tvDate.text =
+                            DateFormatter.formatDate(timestamp, DateFormatter.DF2)
                         deadlineLayout.tvDate.visibility = View.VISIBLE
                     }
                 } else {
-                    date = null
+                    timestamp = 0L
                     deadlineLayout.tvDate.visibility = View.GONE
                 }
             }
@@ -116,11 +115,11 @@ class CreateTaskActivity : AppCompatActivity()  {
 
     private fun setTaskData() {
         priority = task.priority
-        date = task.deadline
         with(binding) {
             etDescription.setText(task.description)
-            task.deadline?.let {
-                deadlineLayout.tvDate.text = DateFormatter.formatDate(it, DateFormatter.DF2)
+            if (task.deadline != 0L) {
+                timestamp = task.deadline
+                deadlineLayout.tvDate.text = DateFormatter.formatDate(timestamp, DateFormatter.DF2)
                 deadlineLayout.tvDate.visibility = View.VISIBLE
                 deadlineLayout.switchDeadline.isChecked = true
             }
@@ -154,7 +153,7 @@ class CreateTaskActivity : AppCompatActivity()  {
     private fun saveTask(
         description: String,
         priority: Int,
-        date: Date?
+        deadline: Long
     ) {
         val data = Intent()
         if (isTaskCreation) {

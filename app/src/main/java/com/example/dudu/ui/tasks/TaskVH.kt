@@ -6,10 +6,9 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.dudu.R
 import com.example.dudu.databinding.TaskItemBinding
-import com.example.dudu.models.Priority
-import com.example.dudu.models.Task
+import com.example.dudu.data.Priority
+import com.example.dudu.data.local.Task
 import com.example.dudu.util.DateFormatter
-import java.util.*
 
 class TaskVH(
     private val binding: TaskItemBinding
@@ -23,8 +22,8 @@ class TaskVH(
             }
             clTask.setOnClickListener { listener.onTaskClick(task) }
             tvDescription.text = task.description
-            tvDeadline.visibility = if (task.deadline == null) View.GONE else View.VISIBLE
-            tvDeadline.text = task.deadline?.let { DateFormatter.formatDate(it, DateFormatter.DF1) }
+            tvDeadline.visibility = if (task.deadline == 0L) View.GONE else View.VISIBLE
+            tvDeadline.text = task.deadline.let { DateFormatter.formatDate(it, DateFormatter.DF1) }
             handleStatus(task)
         }
     }
@@ -68,16 +67,15 @@ class TaskVH(
         }
     }
 
-    private fun handleDeadline(date: Date?) {
+    private fun handleDeadline(deadline: Long) {
         with(binding) {
-            if (date == null) {
+            if (deadline == 0L) {
                 cbStatus.buttonDrawable =
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
                 return
             }
             val currentDateInMillis = DateFormatter.getCurrentDateWithoutTime().time
-            val deadlineInMillis = date.time
-            if (deadlineInMillis >= currentDateInMillis) {
+            if (deadline >= currentDateInMillis) {
                 cbStatus.buttonDrawable =
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
             } else {

@@ -1,14 +1,17 @@
-package com.example.dudu.models
+package com.example.dudu.data.local
 
 import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
-import java.util.*
 
+@Entity(tableName = "tasks")
 @Parcelize
 data class Task(
+    @PrimaryKey
     val id: String,
     val description: String,
-    val deadline: Date?,
+    val deadline: Long,
     val priority: Int,
     val isDone: Boolean
 ) : Parcelable
