@@ -16,7 +16,9 @@ class DatePickerFragment(
         val year = c.get(Calendar.YEAR)
         val month = c.get(Calendar.MONTH)
         val day = c.get(Calendar.DAY_OF_MONTH)
-        return DatePickerDialog(requireContext(), this, year, month, day)
+        val pickerDialog = DatePickerDialog(requireContext(), this, year, month, day)
+        pickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000
+        return pickerDialog
     }
 
     override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
