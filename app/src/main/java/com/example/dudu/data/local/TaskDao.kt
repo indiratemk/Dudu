@@ -7,17 +7,17 @@ import kotlinx.coroutines.flow.Flow
 interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE (isDone == :showDone OR isDone = 0)")
-    fun getTasks(showDone: Boolean): Flow<List<Task>>
+    fun getTasks(showDone: Boolean): Flow<List<TaskEntity>>
 
     @Query("SELECT COUNT(*) FROM tasks WHERE isDone = 1")
     fun getDoneTasksCount(): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTask(task: Task)
+    suspend fun insertTask(task: TaskEntity)
 
     @Update
-    suspend fun updateTask(task: Task)
+    suspend fun updateTask(task: TaskEntity)
 
     @Delete
-    suspend fun deleteTask(task: Task)
+    suspend fun deleteTask(task: TaskEntity)
 }
