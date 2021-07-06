@@ -1,14 +1,19 @@
 package com.example.dudu.ui.tasks
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.dudu.data.TasksRepository
-import com.example.dudu.data.local.Task
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.example.dudu.data.local.TaskEntity
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TasksViewModel(
+class TasksViewModel @Inject constructor(
     private val repository: TasksRepository
 ) : ViewModel() {
 
@@ -19,7 +24,7 @@ class TasksViewModel(
     val showDone: LiveData<Boolean>
         get() = _showDone.asLiveData()
 
-    val tasks: LiveData<List<Task>> = _showDone.flatMapLatest {
+    val tasks: LiveData<List<TaskEntity>> = _showDone.flatMapLatest {
         repository.getTasks(it)
     }.asLiveData()
 
@@ -29,35 +34,22 @@ class TasksViewModel(
         _showDone.value = showDone
     }
 
-    fun onTaskCheckedChanged(task: Task, isChecked: Boolean) {
+    fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean) {
         viewModelScope.launch {
             repository.updateTask(task.copy(isDone = isChecked))
         }
     }
 
-    fun onTaskRemoved(task: Task) {
+    fun onTaskRemoved(task: TaskEntity) {
         viewModelScope.launch {
             repository.removeTask(task)
             taskEventChannel.send(TaskEvent.ShouldUndoRemove(task))
         }
     }
 
-    fun onUndoTaskRemove(task: Task) {
+    fun onUndoTaskRemove(task: TaskEntity) {
         viewModelScope.launch {
             repository.addTask(task)
         }
-    }
-}
-
-class TasksViewModelFactory(
-    private val repository: TasksRepository
-) : ViewModelProvider.Factory {
-
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TasksViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return TasksViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

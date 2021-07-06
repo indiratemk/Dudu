@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.dudu.data.local.Task
+import com.example.dudu.data.local.TaskEntity
 import com.example.dudu.databinding.TaskItemBinding
 import com.example.dudu.util.DiffCallbackImpl
 
@@ -12,7 +12,7 @@ class TaskAdapter(
     private val listener: TaskClickListener
 ) : RecyclerView.Adapter<TaskVH>() {
 
-    var tasks = emptyList<Task>()
+    var tasks = emptyList<TaskEntity>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskVH {
         val inflater = LayoutInflater.from(parent.context)
@@ -27,7 +27,7 @@ class TaskAdapter(
         return tasks.size
     }
 
-    fun updateTasks(tasks: List<Task>) {
+    fun updateTasks(tasks: List<TaskEntity>) {
         val callback = DiffCallbackImpl(
             oldItems = this.tasks,
             newItems = tasks,

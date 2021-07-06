@@ -7,14 +7,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.dudu.R
 import com.example.dudu.databinding.TaskItemBinding
 import com.example.dudu.data.Priority
-import com.example.dudu.data.local.Task
+import com.example.dudu.data.local.TaskEntity
 import com.example.dudu.util.DateFormatter
 
 class TaskVH(
     private val binding: TaskItemBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(task: Task, listener: TaskClickListener) {
+    fun bind(task: TaskEntity, listener: TaskClickListener) {
         with(binding) {
             cbStatus.isChecked = task.isDone
             cbStatus.setOnClickListener {
@@ -28,7 +28,7 @@ class TaskVH(
         }
     }
 
-    private fun handleStatus(task: Task) {
+    private fun handleStatus(task: TaskEntity) {
         with(binding) {
             if (task.isDone) {
                 tvDescription.setTextColor(ContextCompat.getColor(itemView.context,

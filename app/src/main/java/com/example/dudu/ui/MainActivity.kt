@@ -4,17 +4,17 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.dudu.*
-import com.example.dudu.data.local.Task
+import com.example.dudu.data.local.TaskEntity
 import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.ui.task.CreateTaskActivity
 import com.example.dudu.ui.tasks.*
@@ -22,20 +22,25 @@ import com.example.dudu.util.*
 import kotlinx.coroutines.flow.collect
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), TaskClickListener {
 
-    private val tasksViewModel: TasksViewModel by viewModels {
-        TasksViewModelFactory((application as DuduApplication).repository)
-    }
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
 
     private lateinit var binding: MainActivityBinding
+    private lateinit var tasksViewModel: TasksViewModel
     private val tasksAdapter = TaskAdapter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        DuduApp.appComponent.inject(this)
+        tasksViewModel =
+            ViewModelProvider(this, viewModelFactory)[TasksViewModel::class.java]
 
         scheduleReminderWork()
         initUI()
@@ -158,7 +163,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             Constants.REQUEST_EDIT_TASK -> {
                 when (resultCode) {
                     Constants.RESULT_TASK_REMOVED -> {
-                        data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)?.let {
+                        data?.getParcelableExtra<TaskEntity>(Constants.EXTRA_TASK)?.let {
                             tasksViewModel.onTaskRemoved(it)
                         }
                     }
@@ -184,11 +189,11 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             .enqueue(dailyWorkRequest)
     }
 
-    override fun onTaskClick(task: Task) {
+    override fun onTaskClick(task: TaskEntity) {
         CreateTaskActivity.startActivityForResult(this, task, Constants.REQUEST_EDIT_TASK)
     }
 
-    override fun onCheckBoxClick(task: Task, isChecked: Boolean) {
+    override fun onCheckBoxClick(task: TaskEntity, isChecked: Boolean) {
         tasksViewModel.onTaskCheckedChanged(task, isChecked)
     }
 }
