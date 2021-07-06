@@ -5,42 +5,31 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
-import com.example.dudu.DuduApplication
+import androidx.lifecycle.ViewModelProvider
+import com.example.dudu.DuduApp
 import com.example.dudu.R
 import com.example.dudu.data.Priority
-import com.example.dudu.data.local.Task
+import com.example.dudu.data.local.TaskEntity
 import com.example.dudu.databinding.CreateTaskActivityBinding
 import com.example.dudu.util.Constants
 import com.example.dudu.util.DateFormatter
 import com.example.dudu.util.DatePickerFragment
+import com.example.dudu.util.ViewModelFactory
 import java.util.*
+import javax.inject.Inject
 
 
 class CreateTaskActivity : AppCompatActivity()  {
 
-    companion object {
-        fun startActivityForResult(activity: Activity, task: Task, requestCode: Int) {
-            val intent = Intent(activity, CreateTaskActivity::class.java)
-            intent.putExtra(Constants.EXTRA_TASK, task)
-            activity.startActivityForResult(intent, requestCode)
-        }
-
-        fun startActivityForResult(activity: Activity, requestCode: Int) {
-            val intent = Intent(activity, CreateTaskActivity::class.java)
-            activity.startActivityForResult(intent, requestCode)
-        }
-    }
-
-    private val createTaskViewModel: CreateTaskViewModel by viewModels {
-        CreateTaskViewModelFactory((application as DuduApplication).repository)
-    }
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
 
     private lateinit var binding: CreateTaskActivityBinding
+    private lateinit var createTaskViewModel: CreateTaskViewModel
     private lateinit var prioritiesAdapter: PrioritiesAdapter
-    private lateinit var task: Task
+    private lateinit var task: TaskEntity
     private var priority = Priority.NONE.value
     private var isTaskCreation = true
     private var timestamp = 0L
@@ -57,7 +46,12 @@ class CreateTaskActivity : AppCompatActivity()  {
         super.onCreate(savedInstanceState)
         binding = CreateTaskActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val task = intent.getParcelableExtra<Task>(Constants.EXTRA_TASK)
+
+        DuduApp.appComponent.inject(this)
+        createTaskViewModel =
+            ViewModelProvider(this, viewModelFactory)[CreateTaskViewModel::class.java]
+
+        val task = intent.getParcelableExtra<TaskEntity>(Constants.EXTRA_TASK)
         isTaskCreation = task == null
         task?.let {
             this.task = it
@@ -155,8 +149,14 @@ class CreateTaskActivity : AppCompatActivity()  {
         deadline: Long
     ) {
         if (isTaskCreation) {
-            val task = Task(UUID.randomUUID().toString(), description, deadline, priority, false)
-            createTaskViewModel.addTask(task)
+            val task = TaskEntity(
+                UUID.randomUUID().toString(),
+                description,
+                deadline,
+                priority,
+                false
+            )
+            createTaskViewModel.createTask(task)
         } else {
             val task = this.task.copy(
                 description = description,
@@ -166,5 +166,18 @@ class CreateTaskActivity : AppCompatActivity()  {
             createTaskViewModel.updateTask(task)
         }
         finish()
+    }
+
+    companion object {
+        fun startActivityForResult(activity: Activity, task: TaskEntity, requestCode: Int) {
+            val intent = Intent(activity, CreateTaskActivity::class.java)
+            intent.putExtra(Constants.EXTRA_TASK, task)
+            activity.startActivityForResult(intent, requestCode)
+        }
+
+        fun startActivityForResult(activity: Activity, requestCode: Int) {
+            val intent = Intent(activity, CreateTaskActivity::class.java)
+            activity.startActivityForResult(intent, requestCode)
+        }
     }
 }

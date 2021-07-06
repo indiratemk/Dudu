@@ -1,38 +1,25 @@
 package com.example.dudu.ui.task
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.dudu.data.TasksRepository
-import com.example.dudu.data.local.Task
+import com.example.dudu.data.local.TaskEntity
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CreateTaskViewModel(
+class CreateTaskViewModel @Inject constructor(
     private val repository: TasksRepository
 ) : ViewModel() {
 
-    fun addTask(task: Task) {
+    fun createTask(task: TaskEntity) {
         viewModelScope.launch {
             repository.addTask(task)
         }
     }
 
-    fun updateTask(task: Task) {
+    fun updateTask(task: TaskEntity) {
         viewModelScope.launch {
             repository.updateTask(task)
         }
-    }
-}
-
-class CreateTaskViewModelFactory(
-    private val repository: TasksRepository
-) : ViewModelProvider.Factory {
-
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CreateTaskViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return CreateTaskViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
