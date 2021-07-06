@@ -45,7 +45,7 @@ class TaskVH(
         }
     }
 
-    private fun handlePriority(priority: Int) {
+    private fun handlePriority(priority: String) {
         with(binding.ivPriority) {
             when (priority) {
                 Priority.HIGH.value -> {

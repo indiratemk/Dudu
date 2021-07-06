@@ -127,7 +127,9 @@ class CreateTaskActivity : AppCompatActivity()  {
         )
         binding.spinnerPriority.apply {
             adapter = prioritiesAdapter
-            setSelection(priority, false)
+            val priorities = mutableListOf<String>()
+            Priority.values().forEach { priorities.add(it.value) }
+            setSelection(priorities.indexOf(priority), false)
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
@@ -145,7 +147,7 @@ class CreateTaskActivity : AppCompatActivity()  {
 
     private fun saveTask(
         description: String,
-        priority: Int,
+        priority: String,
         deadline: Long
     ) {
         if (isTaskCreation) {

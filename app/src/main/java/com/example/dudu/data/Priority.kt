@@ -1,7 +1,7 @@
 package com.example.dudu.data
 
-enum class Priority(val value: Int) {
-    NONE(0),
-    LOW(1),
-    HIGH(2)
+enum class Priority(val value: String) {
+    NONE("basic"),
+    LOW("low"),
+    HIGH("high")
 }

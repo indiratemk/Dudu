@@ -12,6 +12,6 @@ data class TaskEntity(
     val id: String,
     val description: String,
     val deadline: Long,
-    val priority: Int,
+    val priority: String,
     val isDone: Boolean
 ) : Parcelable
