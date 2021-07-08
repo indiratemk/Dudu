@@ -1,6 +1,6 @@
 package com.example.dudu.data.remote.errors
 
-class BackendError(
+class BackendException(
     code: Int,
-    message: String
+    message: String?
 ) : Exception()
