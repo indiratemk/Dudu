@@ -40,7 +40,7 @@ class LocalDataSource(
         taskDao.deleteTask(mapFromTaskToEntity(task))
     }
 
-    suspend fun removeTask(task: TaskEntity) {
-        taskDao.deleteTask(task)
+    suspend fun refreshTasks(tasks: List<Task>) {
+        taskDao.refreshTasks(tasks.map { mapFromTaskToEntity(it) })
     }
 }
