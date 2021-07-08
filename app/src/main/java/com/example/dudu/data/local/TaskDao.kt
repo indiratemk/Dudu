@@ -1,6 +1,7 @@
 package com.example.dudu.data.local
 
 import androidx.room.*
+import com.example.dudu.data.local.entities.TaskEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,6 +13,9 @@ interface TaskDao {
     @Query("SELECT COUNT(*) FROM tasks WHERE isDone = 1")
     fun getDoneTasksCount(): Flow<Int>
 
+    @Query("SELECT * FROM tasks WHERE id = :taskId")
+    suspend fun getTask(taskId: String): TaskEntity
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: TaskEntity)
 
@@ -20,4 +24,10 @@ interface TaskDao {
 
     @Delete
     suspend fun deleteTask(task: TaskEntity)
+
+    @Query("DELETE FROM tasks")
+    suspend fun deleteAllTasks()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTasks(tasks: List<TaskEntity>)
 }
