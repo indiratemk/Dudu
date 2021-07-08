@@ -1,12 +1,9 @@
-package com.example.dudu.data.local
+package com.example.dudu.data.local.entities
 
-import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "tasks")
-@Parcelize
 data class TaskEntity(
     @PrimaryKey
     val id: String,
@@ -14,4 +11,4 @@ data class TaskEntity(
     val deadline: Long,
     val priority: String,
     val isDone: Boolean
-) : Parcelable
+)
