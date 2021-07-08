@@ -5,16 +5,16 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.dudu.R
+import com.example.dudu.data.models.Priority
+import com.example.dudu.data.models.Task
 import com.example.dudu.databinding.TaskItemBinding
-import com.example.dudu.data.Priority
-import com.example.dudu.data.local.TaskEntity
 import com.example.dudu.util.DateFormatter
 
 class TaskVH(
     private val binding: TaskItemBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(task: TaskEntity, listener: TaskClickListener) {
+    fun bind(task: Task, listener: TaskClickListener) {
         with(binding) {
             cbStatus.isChecked = task.isDone
             cbStatus.setOnClickListener {
@@ -28,7 +28,7 @@ class TaskVH(
         }
     }
 
-    private fun handleStatus(task: TaskEntity) {
+    private fun handleStatus(task: Task) {
         with(binding) {
             if (task.isDone) {
                 tvDescription.setTextColor(ContextCompat.getColor(itemView.context,
@@ -74,8 +74,7 @@ class TaskVH(
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
                 return
             }
-            val currentDateInMillis = DateFormatter.getCurrentDateWithoutTime().time
-            if (deadline >= currentDateInMillis) {
+            if (deadline >= DateFormatter.getCurrentDateInSeconds()) {
                 cbStatus.buttonDrawable =
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
             } else {

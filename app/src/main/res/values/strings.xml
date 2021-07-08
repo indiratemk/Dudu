@@ -18,7 +18,9 @@
     <string name="main_add_task_btn_desc">Создать задачу</string>
     <string name="main_task_removed_message">Задача удалена</string>
     <string name="main_task_removed_action">Отменить</string>
+    <string name="main_task_restored_message">Задача восстановлена</string>
     <string name="main_empty_label">Задач пока нет =)</string>
+    <string name="main_unknown_error_message">Произошла ошибка. Попробуйте позже</string>
 
     <string name="create_task_menu_action_save">Сохранить</string>
     <string name="create_task_input_hint">Что надо сделать…</string>

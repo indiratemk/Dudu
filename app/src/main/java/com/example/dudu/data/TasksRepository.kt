@@ -1,17 +1,18 @@
 package com.example.dudu.data
 
-import com.example.dudu.data.local.TaskEntity
+import com.example.dudu.data.helpers.Resource
+import com.example.dudu.data.models.Task
 import kotlinx.coroutines.flow.Flow
 
 interface TasksRepository {
 
-    fun getTasks(showDone: Boolean): Flow<List<TaskEntity>>
+    fun getTasks(showDone: Boolean, fetchRemote: Boolean): Flow<Resource<List<Task>>>
 
     fun getDoneTasksCount(): Flow<Int>
 
-    suspend fun addTask(task: TaskEntity)
+    suspend fun addTask(task: Task): Resource<Task>
 
-    suspend fun updateTask(task: TaskEntity)
+    suspend fun updateTask(task: Task): Resource<Task>
 
-    suspend fun removeTask(task: TaskEntity)
+    suspend fun removeTask(task: Task): Resource<Task>
 }

@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.dudu.data.TasksRepository
-import com.example.dudu.data.local.TaskEntity
+import com.example.dudu.data.helpers.Resource
+import com.example.dudu.data.models.Task
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -24,32 +26,48 @@ class TasksViewModel @Inject constructor(
     val showDone: LiveData<Boolean>
         get() = _showDone.asLiveData()
 
-    val tasks: LiveData<List<TaskEntity>> = _showDone.flatMapLatest {
-        repository.getTasks(it)
+    private val _shouldFetchRemote = MutableStateFlow(true)
+
+    val tasksResource: LiveData<Resource<List<Task>>> = combine(
+        _showDone, _shouldFetchRemote
+    ) { showDone, shouldRetchRemote -> Pair(showDone, shouldRetchRemote) }.flatMapLatest {
+        repository.getTasks(it.first, it.second)
     }.asLiveData()
 
     val doneTasksCount: LiveData<Int> = repository.getDoneTasksCount().asLiveData()
 
     fun setShowDoneTasks(showDone: Boolean) {
         _showDone.value = showDone
+        _shouldFetchRemote.value = false
     }
 
-    fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean) {
+    fun onTaskCheckedChanged(task: Task, isChecked: Boolean) {
         viewModelScope.launch {
-            repository.updateTask(task.copy(isDone = isChecked))
+            when (val resource = repository.updateTask(task.copy(isDone = isChecked))) {
+                is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessUpdating)
+                is Resource.Error ->
+                    taskEventChannel.send(TaskEvent.Error(resource.exception.message))
+            }
         }
     }
 
-    fun onTaskRemoved(task: TaskEntity) {
+    fun onTaskRemoved(task: Task) {
         viewModelScope.launch {
-            repository.removeTask(task)
-            taskEventChannel.send(TaskEvent.ShouldUndoRemove(task))
+            when (val resource = repository.removeTask(task)) {
+                is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessRemoving(task))
+                is Resource.Error ->
+                    taskEventChannel.send(TaskEvent.Error(resource.exception.message))
+            }
         }
     }
 
-    fun onUndoTaskRemove(task: TaskEntity) {
+    fun onUndoTaskRemove(task: Task) {
         viewModelScope.launch {
-            repository.addTask(task)
+            when (val resource = repository.addTask(task)) {
+                is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessCreating)
+                is Resource.Error ->
+                    taskEventChannel.send(TaskEvent.Error(resource.exception.message))
+            }
         }
     }
 }

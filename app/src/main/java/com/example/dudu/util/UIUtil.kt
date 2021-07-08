@@ -22,4 +22,11 @@ object UIUtil {
         actionTextView.isAllCaps = false
         snackbar.show()
     }
+
+    fun showSnackbar(
+        view: View,
+        text: String
+    ) {
+       Snackbar.make(view, text, Snackbar.LENGTH_LONG).show()
+    }
 }

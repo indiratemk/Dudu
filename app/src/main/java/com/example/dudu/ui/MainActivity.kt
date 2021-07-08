@@ -14,7 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.dudu.*
-import com.example.dudu.data.local.TaskEntity
+import com.example.dudu.data.helpers.Resource
+import com.example.dudu.data.models.Task
 import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.ui.task.CreateTaskActivity
 import com.example.dudu.ui.tasks.*
@@ -61,7 +62,8 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 }
             }
             headerLayout.ibChangeMode.apply {
-                val currentMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                val currentMode =
+                    resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 isSelected = when (currentMode) {
                     Configuration.UI_MODE_NIGHT_YES -> true
                     else -> false
@@ -117,15 +119,32 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     }
 
     private fun subscribeObservers() {
-        tasksViewModel.tasks.observe(this, { tasks ->
-            tasksAdapter.updateTasks(tasks)
-            with(binding) {
-                if (tasksAdapter.itemCount == 0) {
-                    rvTasks.visibility = View.GONE
-                    tvEmpty.visibility = View.VISIBLE
-                } else {
-                    rvTasks.visibility = View.VISIBLE
-                    tvEmpty.visibility = View.GONE
+        tasksViewModel.tasksResource.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    with(binding) {
+                        rvTasks.visibility = View.GONE
+                        tvEmpty.visibility = View.GONE
+                        pbLoading.visibility = View.VISIBLE
+                    }
+                }
+                is Resource.Loaded -> {
+                    tasksAdapter.updateTasks(resource.data)
+                    with(binding) {
+                        if (tasksAdapter.itemCount == 0) {
+                            rvTasks.visibility = View.GONE
+                            tvEmpty.visibility = View.VISIBLE
+                            pbLoading.visibility = View.GONE
+                        } else {
+                            rvTasks.visibility = View.VISIBLE
+                            tvEmpty.visibility = View.GONE
+                            pbLoading.visibility = View.GONE
+                        }
+                    }
+                }
+                is Resource.Error -> {
+                    // TODO: 7/8/21 убрать захардкоденный текст
+                    UIUtil.showSnackbar(binding.coordinatorContainer, "Произошла ошибка")
                 }
             }
         })
@@ -143,7 +162,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         lifecycleScope.launchWhenStarted {
             tasksViewModel.taskEvent.collect { event ->
                 when (event) {
-                    is TaskEvent.ShouldUndoRemove -> {
+                    is TaskEvent.SuccessRemoving -> {
                         UIUtil.showSnackbar(
                             binding.coordinatorContainer,
                             getString(R.string.main_task_removed_message),
@@ -152,6 +171,16 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                             tasksViewModel.onUndoTaskRemove(event.task)
                         }
                     }
+                    is TaskEvent.SuccessCreating ->
+                        UIUtil.showSnackbar(
+                            binding.coordinatorContainer,
+                            getString(R.string.main_task_restored_message)
+                        )
+                    is TaskEvent.SuccessUpdating -> {}
+                    is TaskEvent.Error -> UIUtil.showSnackbar(
+                        binding.coordinatorContainer,
+                        event.message ?: getString(R.string.main_unknown_error_message)
+                    )
                 }
             }
         }
@@ -163,7 +192,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             Constants.REQUEST_EDIT_TASK -> {
                 when (resultCode) {
                     Constants.RESULT_TASK_REMOVED -> {
-                        data?.getParcelableExtra<TaskEntity>(Constants.EXTRA_TASK)?.let {
+                        data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)?.let {
                             tasksViewModel.onTaskRemoved(it)
                         }
                     }
@@ -189,11 +218,11 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             .enqueue(dailyWorkRequest)
     }
 
-    override fun onTaskClick(task: TaskEntity) {
+    override fun onTaskClick(task: Task) {
         CreateTaskActivity.startActivityForResult(this, task, Constants.REQUEST_EDIT_TASK)
     }
 
-    override fun onCheckBoxClick(task: TaskEntity, isChecked: Boolean) {
+    override fun onCheckBoxClick(task: Task, isChecked: Boolean) {
         tasksViewModel.onTaskCheckedChanged(task, isChecked)
     }
 }
