@@ -2,12 +2,11 @@ package com.example.dudu.di.modules
 
 import com.example.dudu.BuildConfig
 import com.example.dudu.data.remote.RemoteDataSource
-import com.example.dudu.data.remote.RequestInterceptor
+import com.example.dudu.data.remote.interceptors.RequestInterceptor
 import com.example.dudu.data.remote.TasksApi
 import com.example.dudu.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

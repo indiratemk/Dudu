@@ -1,4 +1,4 @@
-package com.example.dudu.data.remote
+package com.example.dudu.data.remote.interceptors
 
 import okhttp3.Interceptor
 import okhttp3.Response

@@ -1,10 +1,10 @@
-package com.example.dudu.data.remote
+package com.example.dudu.data.remote.dtos
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-data class TaskModel(
+data class TaskDto(
 
     @SerializedName("id")
     @Expose
