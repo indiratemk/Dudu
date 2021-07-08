@@ -32,6 +32,7 @@
     <string name="create_task_btn_reset">Очистить</string>
     <string name="create_task_deadline_label">Сделать до</string>
     <string name="create_task_description_error">Введите пожалуйста описание задачи =)</string>
+    <string name="create_task_loading_message">Подождите немного</string>
 
     <string name="task_short">Проверка короткого таска</string>
     <string name="task_normal">Проверка таска средней длины. И так, проверим</string>

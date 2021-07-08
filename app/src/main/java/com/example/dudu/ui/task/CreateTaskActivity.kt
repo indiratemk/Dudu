@@ -8,16 +8,19 @@ import android.widget.AdapterView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import com.example.dudu.DuduApp
 import com.example.dudu.R
-import com.example.dudu.data.Priority
-import com.example.dudu.data.local.TaskEntity
+import com.example.dudu.data.models.Priority
+import com.example.dudu.data.models.Task
 import com.example.dudu.databinding.CreateTaskActivityBinding
 import com.example.dudu.util.Constants
 import com.example.dudu.util.DateFormatter
 import com.example.dudu.util.DatePickerFragment
 import com.example.dudu.util.ViewModelFactory
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -29,12 +32,12 @@ class CreateTaskActivity : AppCompatActivity()  {
     private lateinit var binding: CreateTaskActivityBinding
     private lateinit var createTaskViewModel: CreateTaskViewModel
     private lateinit var prioritiesAdapter: PrioritiesAdapter
-    private lateinit var task: TaskEntity
+    private lateinit var task: Task
     private var priority = Priority.NONE.value
     private var isTaskCreation = true
     private var timestamp = 0L
     private val datePicker = DatePickerFragment(onDateSelected = {
-        timestamp = it.time
+        timestamp = TimeUnit.MILLISECONDS.toSeconds(it.time)
         with(binding) {
             deadlineLayout.switchDeadline.isChecked = true
             deadlineLayout.tvDate.text = DateFormatter.formatDate(timestamp, DateFormatter.DF2)
@@ -51,13 +54,14 @@ class CreateTaskActivity : AppCompatActivity()  {
         createTaskViewModel =
             ViewModelProvider(this, viewModelFactory)[CreateTaskViewModel::class.java]
 
-        val task = intent.getParcelableExtra<TaskEntity>(Constants.EXTRA_TASK)
+        val task = intent.getParcelableExtra<Task>(Constants.EXTRA_TASK)
         isTaskCreation = task == null
         task?.let {
             this.task = it
             setTaskData()
         }
         initUI()
+        subscribeObservers()
     }
 
     private fun initUI() {
@@ -92,7 +96,7 @@ class CreateTaskActivity : AppCompatActivity()  {
             deadlineLayout.switchDeadline.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     if (timestamp == 0L) {
-                        timestamp = DateFormatter.getCurrentDateWithoutTime().time
+                        timestamp = DateFormatter.getCurrentDateInSeconds()
                         deadlineLayout.tvDate.text =
                             DateFormatter.formatDate(timestamp, DateFormatter.DF2)
                         deadlineLayout.tvDate.visibility = View.VISIBLE
@@ -104,6 +108,21 @@ class CreateTaskActivity : AppCompatActivity()  {
             }
         }
         initPriorities()
+    }
+
+    private fun subscribeObservers() {
+        val loadingDialog = MaterialDialog(this)
+            .customView(R.layout.layout_loading)
+            .cancelable(false)
+
+        createTaskViewModel.isLoading.observe(this, { isLoading ->
+            if (isLoading) {
+                loadingDialog.show()
+            } else {
+                loadingDialog.dismiss()
+                finish()
+            }
+        })
     }
 
     private fun setTaskData() {
@@ -151,7 +170,7 @@ class CreateTaskActivity : AppCompatActivity()  {
         deadline: Long
     ) {
         if (isTaskCreation) {
-            val task = TaskEntity(
+            val task = Task(
                 UUID.randomUUID().toString(),
                 description,
                 deadline,
@@ -167,11 +186,10 @@ class CreateTaskActivity : AppCompatActivity()  {
             )
             createTaskViewModel.updateTask(task)
         }
-        finish()
     }
 
     companion object {
-        fun startActivityForResult(activity: Activity, task: TaskEntity, requestCode: Int) {
+        fun startActivityForResult(activity: Activity, task: Task, requestCode: Int) {
             val intent = Intent(activity, CreateTaskActivity::class.java)
             intent.putExtra(Constants.EXTRA_TASK, task)
             activity.startActivityForResult(intent, requestCode)
