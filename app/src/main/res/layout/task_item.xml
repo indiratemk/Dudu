@@ -10,10 +10,7 @@
     android:foreground="?attr/selectableItemBackground"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="16dp"
-    android:paddingTop="16dp"
-    android:paddingEnd="16dp"
-    android:paddingBottom="16dp">
+    android:padding="16dp">
 
     <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/cbStatus"
@@ -66,4 +63,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_info" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

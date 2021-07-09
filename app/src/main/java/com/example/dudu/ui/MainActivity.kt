@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                     with(binding) {
                         rvTasks.visibility = View.GONE
                         tvEmpty.visibility = View.GONE
-                        pbLoading.visibility = View.VISIBLE
+                        shimmerLoading.visibility = View.VISIBLE
                     }
                 }
                 is Resource.Loaded -> {
@@ -134,11 +134,11 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                         if (tasksAdapter.itemCount == 0) {
                             rvTasks.visibility = View.GONE
                             tvEmpty.visibility = View.VISIBLE
-                            pbLoading.visibility = View.GONE
+                            shimmerLoading.visibility = View.GONE
                         } else {
                             rvTasks.visibility = View.VISIBLE
                             tvEmpty.visibility = View.GONE
-                            pbLoading.visibility = View.GONE
+                            shimmerLoading.visibility = View.GONE
                         }
                     }
                 }

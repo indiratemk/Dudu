@@ -48,6 +48,7 @@ dependencies {
     implementation "androidx.activity:activity-ktx:1.2.3"
     implementation "com.google.code.gson:gson:2.8.7"
     implementation "com.afollestad.material-dialogs:datetime:3.3.0"
+    implementation "com.facebook.shimmer:shimmer:0.5.0"
 
     // ROOM
     implementation "androidx.room:room-ktx:$roomVersion"
