@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface TasksRepository {
 
-    fun getTasks(showDone: Boolean, fetchRemote: Boolean): Flow<Resource<List<Task>>>
+    fun getTasks(showDone: Boolean, shouldFetchRemote: Boolean): Flow<Resource<List<Task>>>
 
     fun getDoneTasksCount(): Flow<Int>
 
