@@ -54,19 +54,10 @@ class TasksViewModel @Inject constructor(
     fun onTaskRemoved(task: Task) {
         viewModelScope.launch {
             when (val resource = repository.removeTask(task)) {
-                is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessRemoving(task))
+                is Resource.Loaded ->
+                    taskEventChannel.send(TaskEvent.SuccessRemoving)
                 is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.Error(resource.message))
-            }
-        }
-    }
-
-    fun onUndoTaskRemove(task: Task) {
-        viewModelScope.launch {
-            when (val resource = repository.addTask(task)) {
-                is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessCreating)
-                is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.Error(resource.message))
+                    taskEventChannel.send(TaskEvent.FailRemoving(resource.message, task))
             }
         }
     }

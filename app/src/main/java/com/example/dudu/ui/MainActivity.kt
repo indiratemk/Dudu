@@ -13,6 +13,9 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.callbacks.onCancel
+import com.afollestad.materialdialogs.customview.customView
 import com.example.dudu.*
 import com.example.dudu.data.helpers.Resource
 import com.example.dudu.data.models.Task
@@ -33,6 +36,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     private lateinit var binding: MainActivityBinding
     private lateinit var tasksViewModel: TasksViewModel
     private val tasksAdapter = TaskAdapter(this)
+    private lateinit var loadingDialog: MaterialDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +85,9 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 binding.rvTasks.smoothScrollToPosition(0)
             }
         }
+        loadingDialog = MaterialDialog(this)
+            .customView(R.layout.layout_loading)
+            .cancelable(false)
         initRV()
     }
 
@@ -108,9 +115,25 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.red),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
-                ) { position ->
-                    val task = tasksAdapter.tasks[position]
-                    tasksViewModel.onTaskRemoved(task)
+                ) { position -> MaterialDialog(this@MainActivity)
+                    .show {
+                        message(R.string.main_task_removing_message)
+                        cancelable(true)
+                        onCancel {
+                            tasksAdapter.notifyItemChanged(position)
+                            it.dismiss()
+                        }
+                        positiveButton(R.string.main_task_removing_positive) { dialog ->
+                            loadingDialog.show()
+                            dialog.dismiss()
+                            val task = tasksAdapter.tasks[position]
+                            tasksViewModel.onTaskRemoved(task)
+                        }
+                        negativeButton(R.string.main_task_removing_negative) { dialog ->
+                            tasksAdapter.notifyItemChanged(position)
+                            dialog.dismiss()
+                        }
+                    }
                 }
             }
         }
@@ -161,26 +184,34 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
         lifecycleScope.launchWhenStarted {
             tasksViewModel.taskEvent.collect { event ->
-                when (event) {
-                    is TaskEvent.SuccessRemoving -> {
-                        UIUtil.showSnackbar(
-                            binding.coordinatorContainer,
-                            getString(R.string.main_task_removed_message),
-                            getString(R.string.main_task_removed_action)
-                        ) {
-                            tasksViewModel.onUndoTaskRemove(event.task)
+                with(binding) {
+                    when (event) {
+                        is TaskEvent.SuccessRemoving -> {
+                            loadingDialog.dismiss()
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                getString(R.string.main_task_removed)
+                            )
                         }
-                    }
-                    is TaskEvent.SuccessCreating ->
-                        UIUtil.showSnackbar(
-                            binding.coordinatorContainer,
-                            getString(R.string.main_task_restored_message)
+                        is TaskEvent.FailRemoving -> {
+                            loadingDialog.dismiss()
+                            tasksAdapter.notifyItemChanged(tasksAdapter.tasks.indexOf(event.task))
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                event.message ?: getString(R.string.main_unknown_error_message)
+                            )
+                        }
+                        is TaskEvent.SuccessCreating ->
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                getString(R.string.main_task_restored_message)
+                            )
+                        is TaskEvent.SuccessUpdating -> {}
+                        is TaskEvent.Error -> UIUtil.showSnackbar(
+                            coordinatorContainer,
+                            event.message ?: getString(R.string.main_unknown_error_message)
                         )
-                    is TaskEvent.SuccessUpdating -> {}
-                    is TaskEvent.Error -> UIUtil.showSnackbar(
-                        binding.coordinatorContainer,
-                        event.message ?: getString(R.string.main_unknown_error_message)
-                    )
+                    }
                 }
             }
         }

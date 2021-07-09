@@ -11,5 +11,7 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:actionMenuTextColor">@color/blue</item>
         <item name="android:datePickerDialogTheme">@style/DatePicker</item>
+        <item name="md_color_content">@color/label_primary</item>
+        <item name="md_color_button_text">@color/blue</item>
     </style>
 </resources>

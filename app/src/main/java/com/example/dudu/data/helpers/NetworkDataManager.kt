@@ -7,11 +7,14 @@ import kotlinx.coroutines.flow.*
 suspend fun <ResultType : Any> networkManagerFromAction(
     localRequest: suspend () -> Unit,
     remoteRequest: suspend () -> ResultType,
-    revertDataRequest: suspend () -> Unit
+    revertDataRequest: suspend () -> Unit,
+    syncDataIfNeeded: suspend () -> Unit = {}
 ): Resource<ResultType> {
     return try {
         localRequest()
-        Resource.Loaded(remoteRequest())
+        val result = remoteRequest()
+        syncDataIfNeeded()
+        Resource.Loaded(result)
     } catch (exception : BackendException) {
         revertDataRequest()
         Resource.Error(exception.errorMessage)

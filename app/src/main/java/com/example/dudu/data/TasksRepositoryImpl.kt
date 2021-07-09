@@ -48,9 +48,10 @@ class TasksRepositoryImpl(
 
     override suspend fun removeTask(task: Task): Resource<Task> {
         return networkManagerFromAction(
-            localRequest = { localSource.removeTask(task) },
+            localRequest = {},
             remoteRequest = { remoteSource.removeTask(task) },
-            revertDataRequest = { localSource.addTask(task) }
+            revertDataRequest = {},
+            syncDataIfNeeded = { localSource.removeTask(task) }
         )
     }
 }
