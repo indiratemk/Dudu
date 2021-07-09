@@ -46,7 +46,7 @@ class TasksViewModel @Inject constructor(
             when (val resource = repository.updateTask(task.copy(isDone = isChecked))) {
                 is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessUpdating)
                 is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.Error(resource.exception.message))
+                    taskEventChannel.send(TaskEvent.Error(resource.message))
             }
         }
     }
@@ -56,7 +56,7 @@ class TasksViewModel @Inject constructor(
             when (val resource = repository.removeTask(task)) {
                 is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessRemoving(task))
                 is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.Error(resource.exception.message))
+                    taskEventChannel.send(TaskEvent.Error(resource.message))
             }
         }
     }
@@ -66,7 +66,7 @@ class TasksViewModel @Inject constructor(
             when (val resource = repository.addTask(task)) {
                 is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessCreating)
                 is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.Error(resource.exception.message))
+                    taskEventChannel.send(TaskEvent.Error(resource.message))
             }
         }
     }

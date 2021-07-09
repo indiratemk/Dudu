@@ -1,4 +1,4 @@
-package com.example.dudu.data.remote
+package com.example.dudu.data.helpers
 
 import com.example.dudu.data.remote.errors.BackendException
 import com.example.dudu.data.remote.errors.NetworkException
@@ -12,7 +12,7 @@ suspend fun <T: Any> handleResponse(
         if (response.isSuccessful) {
             return response.body()!!
         }
-        throw BackendException(response.code(), response.message())
+        throw BackendException(response.message())
     } catch (e: Exception) {
         e.printStackTrace()
         throw NetworkException()

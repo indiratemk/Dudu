@@ -14,11 +14,11 @@ suspend fun <ResultType : Any> networkManagerFromAction(
         Resource.Loaded(remoteRequest())
     } catch (exception : BackendException) {
         revertDataRequest()
-        Resource.Error(exception)
+        Resource.Error(exception.errorMessage)
     } catch (exception : NetworkException) {
         // TODO: 7/7/21 сохранить запрос
         revertDataRequest()
-        Resource.Error(exception)
+        Resource.Error(exception.message)
 //                Resource.Success(task)
     }
 }
@@ -38,7 +38,12 @@ fun <ResultType : Any, RequestType> networkManagerFromFlow(
                 saveRemoteResult(remoteRequest())
                 localRequest().map { Resource.Loaded(it) }
             } catch (exception: Exception) {
-                emit(Resource.Error(exception))
+                emit(
+                    if (exception is BackendException)
+                        Resource.Error(exception.errorMessage)
+                    else
+                        Resource.Error(exception.message)
+                )
                 localRequest().map { Resource.Loaded(it) }
             }
             emitAll(resultFlow)
