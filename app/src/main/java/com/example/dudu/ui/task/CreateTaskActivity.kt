@@ -12,13 +12,11 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.example.dudu.DuduApp
 import com.example.dudu.R
+import com.example.dudu.data.helpers.Resource
 import com.example.dudu.data.models.Priority
 import com.example.dudu.data.models.Task
 import com.example.dudu.databinding.CreateTaskActivityBinding
-import com.example.dudu.util.Constants
-import com.example.dudu.util.DateFormatter
-import com.example.dudu.util.DatePickerFragment
-import com.example.dudu.util.ViewModelFactory
+import com.example.dudu.util.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -33,6 +31,7 @@ class CreateTaskActivity : AppCompatActivity()  {
     private lateinit var createTaskViewModel: CreateTaskViewModel
     private lateinit var prioritiesAdapter: PrioritiesAdapter
     private lateinit var task: Task
+    private lateinit var loadingDialog: MaterialDialog
     private var priority = Priority.NONE.value
     private var isTaskCreation = true
     private var timestamp = 0L
@@ -67,7 +66,10 @@ class CreateTaskActivity : AppCompatActivity()  {
     private fun initUI() {
         with(binding) {
             toolbar.setNavigationIcon(R.drawable.ic_close)
-            toolbar.setNavigationOnClickListener { finish() }
+            toolbar.setNavigationOnClickListener {
+                setResult(RESULT_CANCELED)
+                finish()
+            }
             toolbar.inflateMenu(R.menu.create_task_menu)
             toolbar.setOnMenuItemClickListener {
                 if (it.itemId == R.id.actionSave) {
@@ -85,10 +87,16 @@ class CreateTaskActivity : AppCompatActivity()  {
                 tvDescriptionError.visibility = View.GONE
             }
             btnRemove.setOnClickListener {
-                val data = Intent()
-                data.putExtra(Constants.EXTRA_TASK, task)
-                setResult(Constants.RESULT_TASK_REMOVED, data)
-                finish()
+                UIUtil.createDialogWithAction(
+                    this@CreateTaskActivity,
+                    R.string.task_removing_message,
+                    onCancel = {},
+                    onPositive = {
+                        setResult(Constants.RESULT_TASK_REMOVED)
+                        createTaskViewModel.removeTask(task)
+                    },
+                    onNegative = {}
+                ).show()
             }
             deadlineLayout.clDeadline.setOnClickListener {
                 datePicker.show(supportFragmentManager, "datePicker")
@@ -107,20 +115,28 @@ class CreateTaskActivity : AppCompatActivity()  {
                 }
             }
         }
+        loadingDialog = MaterialDialog(this)
+            .customView(R.layout.layout_loading)
+            .cancelable(false)
         initPriorities()
     }
 
     private fun subscribeObservers() {
-        val loadingDialog = MaterialDialog(this)
-            .customView(R.layout.layout_loading)
-            .cancelable(false)
-
-        createTaskViewModel.isLoading.observe(this, { isLoading ->
-            if (isLoading) {
-                loadingDialog.show()
-            } else {
-                loadingDialog.dismiss()
-                finish()
+        createTaskViewModel.task.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    loadingDialog.show()
+                }
+                is Resource.Loaded -> {
+                    loadingDialog.dismiss()
+                    finish()
+                }
+                is Resource.Error -> {
+                    loadingDialog.dismiss()
+                    setResult(RESULT_CANCELED)
+                    UIUtil.showSnackbar(binding.coordinatorContainer,
+                        resource.message ?: getString(R.string.unknown_error_message))
+                }
             }
         })
     }
@@ -178,6 +194,7 @@ class CreateTaskActivity : AppCompatActivity()  {
                 false
             )
             createTaskViewModel.createTask(task)
+            setResult(Constants.RESULT_TASK_CREATED)
         } else {
             val task = this.task.copy(
                 description = description,
@@ -185,7 +202,13 @@ class CreateTaskActivity : AppCompatActivity()  {
                 deadline = deadline
             )
             createTaskViewModel.updateTask(task)
+            setResult(Constants.RESULT_TASK_UPDATED)
         }
+    }
+
+    override fun onBackPressed() {
+        setResult(RESULT_CANCELED)
+        super.onBackPressed()
     }
 
     companion object {

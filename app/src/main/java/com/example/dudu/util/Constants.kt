@@ -8,6 +8,8 @@ object Constants {
     const val REQUEST_EDIT_TASK = 702
 
     const val RESULT_TASK_REMOVED = 103
+    const val RESULT_TASK_CREATED = 104
+    const val RESULT_TASK_UPDATED = 105
 
     const val REMINDER_WORK_TAG = "REMINDER_WORK_TAG"
     const val FILE_NAME = "dudu"

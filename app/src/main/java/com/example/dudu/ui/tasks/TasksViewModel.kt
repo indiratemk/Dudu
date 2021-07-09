@@ -38,7 +38,10 @@ class TasksViewModel @Inject constructor(
 
     fun setShowDoneTasks(showDone: Boolean) {
         _showDone.value = showDone
-        _shouldFetchRemote.value = false
+    }
+
+    fun setShouldFetchRemote(shouldFetchRemote: Boolean) {
+        _shouldFetchRemote.value = shouldFetchRemote
     }
 
     fun onTaskCheckedChanged(task: Task, isChecked: Boolean) {
@@ -46,12 +49,12 @@ class TasksViewModel @Inject constructor(
             when (val resource = repository.updateTask(task.copy(isDone = isChecked))) {
                 is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessUpdating)
                 is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.Error(resource.message))
+                    taskEventChannel.send(TaskEvent.FailUpdating(resource.message))
             }
         }
     }
 
-    fun onTaskRemoved(task: Task) {
+    fun removeTask(task: Task) {
         viewModelScope.launch {
             when (val resource = repository.removeTask(task)) {
                 is Resource.Loaded ->

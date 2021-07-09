@@ -34,8 +34,7 @@ fun <ResultType : Any, RequestType> networkManagerFromFlow(
 ): Flow<Resource<ResultType>> {
     return flow {
         if (shouldFetchRemote) {
-            val data = localRequest().first()
-            emit(Resource.Loading(data))
+            emit(Resource.Loading)
 
             val resultFlow = try {
                 saveRemoteResult(remoteRequest())

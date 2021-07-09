@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.callbacks.onCancel
 import com.afollestad.materialdialogs.customview.customView
 import com.example.dudu.*
 import com.example.dudu.data.helpers.Resource
@@ -115,25 +114,18 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.red),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
-                ) { position -> MaterialDialog(this@MainActivity)
-                    .show {
-                        message(R.string.main_task_removing_message)
-                        cancelable(true)
-                        onCancel {
-                            tasksAdapter.notifyItemChanged(position)
-                            it.dismiss()
-                        }
-                        positiveButton(R.string.main_task_removing_positive) { dialog ->
+                ) { position ->
+                    UIUtil.createDialogWithAction(
+                        this@MainActivity,
+                        R.string.task_removing_message,
+                        onCancel = { tasksAdapter.notifyItemChanged(position) },
+                        onPositive = {
                             loadingDialog.show()
-                            dialog.dismiss()
                             val task = tasksAdapter.tasks[position]
-                            tasksViewModel.onTaskRemoved(task)
-                        }
-                        negativeButton(R.string.main_task_removing_negative) { dialog ->
-                            tasksAdapter.notifyItemChanged(position)
-                            dialog.dismiss()
-                        }
-                    }
+                            tasksViewModel.removeTask(task)
+                        },
+                        onNegative = { tasksAdapter.notifyItemChanged(position) }
+                    ).show()
                 }
             }
         }
@@ -164,6 +156,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                             shimmerLoading.visibility = View.GONE
                         }
                     }
+                    tasksViewModel.setShouldFetchRemote(false)
                 }
                 is Resource.Error -> {
                     // TODO: 7/8/21 убрать захардкоденный текст
@@ -190,7 +183,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                             loadingDialog.dismiss()
                             UIUtil.showSnackbar(
                                 coordinatorContainer,
-                                getString(R.string.main_task_removed)
+                                getString(R.string.main_task_removed_message)
                             )
                         }
                         is TaskEvent.FailRemoving -> {
@@ -198,18 +191,13 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                             tasksAdapter.notifyItemChanged(tasksAdapter.tasks.indexOf(event.task))
                             UIUtil.showSnackbar(
                                 coordinatorContainer,
-                                event.message ?: getString(R.string.main_unknown_error_message)
+                                event.message ?: getString(R.string.unknown_error_message)
                             )
                         }
-                        is TaskEvent.SuccessCreating ->
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                getString(R.string.main_task_restored_message)
-                            )
                         is TaskEvent.SuccessUpdating -> {}
-                        is TaskEvent.Error -> UIUtil.showSnackbar(
+                        is TaskEvent.FailUpdating -> UIUtil.showSnackbar(
                             coordinatorContainer,
-                            event.message ?: getString(R.string.main_unknown_error_message)
+                            event.message ?: getString(R.string.unknown_error_message)
                         )
                     }
                 }
@@ -222,11 +210,19 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         when (requestCode) {
             Constants.REQUEST_EDIT_TASK -> {
                 when (resultCode) {
-                    Constants.RESULT_TASK_REMOVED -> {
-                        data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)?.let {
-                            tasksViewModel.onTaskRemoved(it)
-                        }
-                    }
+                    Constants.RESULT_TASK_REMOVED ->
+                        UIUtil.showSnackbar(binding.coordinatorContainer,
+                            getString(R.string.main_task_removed_message))
+                    Constants.RESULT_TASK_UPDATED ->
+                        UIUtil.showSnackbar(binding.coordinatorContainer,
+                            getString(R.string.main_task_updated_message))
+                }
+            }
+            Constants.REQUEST_CREATE_TASK -> {
+                when (resultCode) {
+                    Constants.RESULT_TASK_CREATED ->
+                        UIUtil.showSnackbar(binding.coordinatorContainer,
+                            getString(R.string.main_task_create_message))
                 }
             }
         }
