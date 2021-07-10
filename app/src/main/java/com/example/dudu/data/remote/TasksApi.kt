@@ -1,5 +1,6 @@
 package com.example.dudu.data.remote
 
+import com.example.dudu.data.remote.dtos.SyncTasksDto
 import com.example.dudu.data.remote.dtos.TaskDto
 import retrofit2.Response
 import retrofit2.http.*
@@ -24,4 +25,9 @@ interface TasksApi {
     suspend fun removeTask(
         @Path("id") taskId: String
     ): Response<TaskDto>
+
+    @PUT("tasks/")
+    suspend fun synchronizeTasks(
+        @Body syncTasks: SyncTasksDto
+    ): Response<List<TaskDto>>
 }

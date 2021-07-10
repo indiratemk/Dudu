@@ -4,6 +4,7 @@ import com.example.dudu.data.helpers.handleResponse
 import com.example.dudu.data.helpers.mapFromDtoToTask
 import com.example.dudu.data.helpers.mapFromTaskToDto
 import com.example.dudu.data.models.Task
+import com.example.dudu.data.remote.dtos.SyncTasksDto
 
 class RemoteDataSource(
     private val tasksApi: TasksApi
@@ -32,5 +33,10 @@ class RemoteDataSource(
         return mapFromDtoToTask(
             handleResponse { tasksApi.removeTask(task.id) }
         )
+    }
+
+    suspend fun synchronizeTasks(syncTasks: SyncTasksDto): List<Task> {
+        return handleResponse { tasksApi.synchronizeTasks(syncTasks) }
+            .map { mapFromDtoToTask(it) }
     }
 }

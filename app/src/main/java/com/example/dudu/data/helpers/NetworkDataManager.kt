@@ -8,12 +8,12 @@ suspend fun <ResultType : Any> networkManagerFromAction(
     localRequest: suspend () -> Unit,
     remoteRequest: suspend () -> ResultType,
     revertDataRequest: suspend () -> Unit,
-    syncDataIfNeeded: suspend () -> Unit = {}
+    syncDataIfNeeded: suspend (ResultType) -> Unit = {}
 ): Resource<ResultType> {
     return try {
         localRequest()
         val result = remoteRequest()
-        syncDataIfNeeded()
+        syncDataIfNeeded(result)
         Resource.Loaded(result)
     } catch (exception : BackendException) {
         revertDataRequest()

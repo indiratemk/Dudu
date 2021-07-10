@@ -1,11 +1,13 @@
 package com.example.dudu.data
 
 import com.example.dudu.data.helpers.Resource
+import com.example.dudu.data.helpers.mapFromTaskToDto
 import com.example.dudu.data.helpers.networkManagerFromAction
 import com.example.dudu.data.helpers.networkManagerFromFlow
 import com.example.dudu.data.local.LocalDataSource
 import com.example.dudu.data.models.Task
 import com.example.dudu.data.remote.RemoteDataSource
+import com.example.dudu.data.remote.dtos.SyncTasksDto
 import kotlinx.coroutines.flow.Flow
 
 class TasksRepositoryImpl(
@@ -52,6 +54,27 @@ class TasksRepositoryImpl(
             remoteRequest = { remoteSource.removeTask(task) },
             revertDataRequest = {},
             syncDataIfNeeded = { localSource.removeTask(task) }
+        )
+    }
+
+    override suspend fun synchronizeTasks() {
+        val deletedTasksIds = localSource.getUnsyncDeletedTasksIds()
+        val updatedTasks = localSource.getUnsyncUpdatedTasks()
+        if (deletedTasksIds.isEmpty() || updatedTasks.isEmpty())
+            return
+
+        val syncTasks = SyncTasksDto(
+            deletedTasksIds,
+            updatedTasks.map { mapFromTaskToDto(it) }
+        )
+        networkManagerFromAction(
+            localRequest = {},
+            remoteRequest = { remoteSource.synchronizeTasks(syncTasks) },
+            revertDataRequest = {},
+            syncDataIfNeeded = {
+                localSource.removeUnsyncTasks()
+                localSource.refreshTasks(it)
+            }
         )
     }
 }
