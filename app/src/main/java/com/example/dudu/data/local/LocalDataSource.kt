@@ -2,6 +2,8 @@ package com.example.dudu.data.local
 
 import com.example.dudu.data.helpers.mapFromEntityToTask
 import com.example.dudu.data.helpers.mapFromTaskToEntity
+import com.example.dudu.data.local.entities.DeletedTaskEntity
+import com.example.dudu.data.local.entities.UpdatedTaskEntity
 import com.example.dudu.data.models.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -9,7 +11,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class LocalDataSource(
-    private val taskDao: TaskDao
+    private val taskDao: TaskDao,
+    private val unsyncTaskDao: UnsyncTaskDao
 ) {
 
     fun getTasks(showDone: Boolean): Flow<List<Task>> {
@@ -42,5 +45,30 @@ class LocalDataSource(
 
     suspend fun refreshTasks(tasks: List<Task>) {
         taskDao.refreshTasks(tasks.map { mapFromTaskToEntity(it) })
+    }
+
+    suspend fun removeUnsyncTask(taskId: String) {
+        val deletedTask = DeletedTaskEntity(taskId)
+        unsyncTaskDao.deleteUnsyncTask(deletedTask)
+    }
+
+    suspend fun updateUnsyncTask(taskId: String) {
+        val updatedTask = UpdatedTaskEntity(taskId)
+        unsyncTaskDao.insertUpdatedTask(updatedTask)
+    }
+
+    suspend fun getUnsyncDeletedTasksIds(): List<String> {
+        return unsyncTaskDao.getDeletedTasks()
+            .map { it.id }
+    }
+
+    suspend fun getUnsyncUpdatedTasks(): List<Task> {
+        return unsyncTaskDao.getUpdatedTasks()
+            .map { it.id }
+            .map { id -> mapFromEntityToTask(taskDao.getTask(id)) }
+    }
+
+    suspend fun removeUnsyncTasks() {
+        unsyncTaskDao.clearUnsyncTasks()
     }
 }

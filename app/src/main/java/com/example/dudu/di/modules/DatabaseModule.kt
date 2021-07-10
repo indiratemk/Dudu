@@ -2,9 +2,7 @@ package com.example.dudu.di.modules
 
 import android.app.Application
 import androidx.room.Room
-import com.example.dudu.data.local.DuduDatabase
-import com.example.dudu.data.local.LocalDataSource
-import com.example.dudu.data.local.TaskDao
+import com.example.dudu.data.local.*
 import com.example.dudu.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides
@@ -28,7 +26,16 @@ object DatabaseModule {
 
     @Provides
     @AppScope
-    fun provideLocalDataSource(taskDao: TaskDao): LocalDataSource {
-        return LocalDataSource(taskDao)
+    fun provideUnsyncTaskDao(duduDb: DuduDatabase): UnsyncTaskDao {
+        return duduDb.unsyncTaskDao()
+    }
+
+    @Provides
+    @AppScope
+    fun provideLocalDataSource(
+        taskDao: TaskDao,
+        unsyncTaskDao: UnsyncTaskDao
+    ): LocalDataSource {
+        return LocalDataSource(taskDao, unsyncTaskDao)
     }
 }
