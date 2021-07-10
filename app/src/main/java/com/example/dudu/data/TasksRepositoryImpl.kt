@@ -9,8 +9,9 @@ import com.example.dudu.data.models.Task
 import com.example.dudu.data.remote.RemoteDataSource
 import com.example.dudu.data.remote.dtos.SyncTasksDto
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class TasksRepositoryImpl(
+class TasksRepositoryImpl @Inject constructor(
     private val localSource: LocalDataSource,
     private val remoteSource: RemoteDataSource
 ) : TasksRepository {

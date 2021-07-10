@@ -5,8 +5,9 @@ import com.example.dudu.data.helpers.mapFromDtoToTask
 import com.example.dudu.data.helpers.mapFromTaskToDto
 import com.example.dudu.data.models.Task
 import com.example.dudu.data.remote.dtos.SyncTasksDto
+import javax.inject.Inject
 
-class RemoteDataSource(
+class RemoteDataSource @Inject constructor(
     private val tasksApi: TasksApi
 ) {
 

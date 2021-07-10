@@ -1,9 +1,7 @@
 package com.example.dudu.di.modules
 
-import com.example.dudu.BuildConfig
-import com.example.dudu.data.remote.RemoteDataSource
-import com.example.dudu.data.remote.interceptors.RequestInterceptor
 import com.example.dudu.data.remote.TasksApi
+import com.example.dudu.data.remote.interceptors.RequestInterceptor
 import com.example.dudu.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides
@@ -27,23 +25,21 @@ object NetworkModule {
     @Provides
     @AppScope
     fun httpLoggingInterceptor(): HttpLoggingInterceptor {
-        return if (BuildConfig.DEBUG)
-            HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
-        else
-            HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE)
+        return HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
     }
 
     @Provides
     @AppScope
     fun provideOkHttpClient(
-        requestInterceptor: RequestInterceptor
+        requestInterceptor: RequestInterceptor,
+        httpLoggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .addInterceptor(requestInterceptor)
-            .addInterceptor(httpLoggingInterceptor())
+            .addInterceptor(httpLoggingInterceptor)
             .build()
     }
 
@@ -70,11 +66,5 @@ object NetworkModule {
     @AppScope
     fun provideTasksApi(retrofit: Retrofit): TasksApi {
         return retrofit.create(TasksApi::class.java)
-    }
-
-    @Provides
-    @AppScope
-    fun provideRemoteDataSource(tasksApi: TasksApi): RemoteDataSource {
-        return RemoteDataSource(tasksApi)
     }
 }

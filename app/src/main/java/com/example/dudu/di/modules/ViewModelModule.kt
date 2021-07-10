@@ -11,18 +11,18 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 
 @Module
-abstract class ViewModelModule {
+interface ViewModelModule {
 
     @Binds
-    abstract fun bindViewModelFactory(factory: ViewModelFactory): ViewModelProvider.Factory
+    fun bindViewModelFactory(factory: ViewModelFactory): ViewModelProvider.Factory
 
     @Binds
     @IntoMap
     @ViewModelKey(TasksViewModel::class)
-    abstract fun bindTasksViewModel(viewModel: TasksViewModel): ViewModel
+    fun bindTasksViewModel(viewModel: TasksViewModel): ViewModel
 
     @Binds
     @IntoMap
     @ViewModelKey(CreateTaskViewModel::class)
-    abstract fun bindCreateTaskViewModel(viewModel: CreateTaskViewModel): ViewModel
+    fun bindCreateTaskViewModel(viewModel: CreateTaskViewModel): ViewModel
 }

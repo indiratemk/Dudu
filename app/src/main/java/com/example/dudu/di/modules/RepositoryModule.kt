@@ -2,21 +2,14 @@ package com.example.dudu.di.modules
 
 import com.example.dudu.data.TasksRepository
 import com.example.dudu.data.TasksRepositoryImpl
-import com.example.dudu.data.local.LocalDataSource
-import com.example.dudu.data.remote.RemoteDataSource
 import com.example.dudu.di.scopes.AppScope
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 
-@Module(includes = [NetworkModule::class, DatabaseModule::class])
-object RepositoryModule {
+@Module
+interface RepositoryModule {
 
-    @Provides
+    @Binds
     @AppScope
-    fun provideRepository(
-        remoteSource: RemoteDataSource,
-        localSource: LocalDataSource
-    ): TasksRepository {
-        return TasksRepositoryImpl(localSource, remoteSource)
-    }
+    fun bindRepository(tasksRepositoryImpl: TasksRepositoryImpl): TasksRepository
 }
