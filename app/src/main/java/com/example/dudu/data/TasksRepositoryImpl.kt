@@ -33,45 +33,56 @@ class TasksRepositoryImpl(
 
     override suspend fun addTask(task: Task): Resource<Task> {
         return networkManagerFromAction(
-            localRequest = { localSource.addTask(task) },
-            remoteRequest = { remoteSource.createTask(task) },
-            revertDataRequest = { localSource.removeTask(task) }
+            onLocalRequest = { localSource.addTask(task) },
+            onRemoteRequest = { remoteSource.createTask(task) },
+            onRevertDataRequest = { localSource.removeTask(task) },
+            onNetworkError = {
+                localSource.updateUnsyncTask(task.id)
+                task
+            }
         )
     }
 
     override suspend fun updateTask(task: Task): Resource<Task> {
         val prevTask = localSource.getTask(task.id)
         return networkManagerFromAction(
-            localRequest = { localSource.updateTask(task) },
-            remoteRequest = { remoteSource.updateTask(task) },
-            revertDataRequest = { localSource.updateTask(prevTask) }
+            onLocalRequest = { localSource.updateTask(task) },
+            onRemoteRequest = { remoteSource.updateTask(task) },
+            onRevertDataRequest = { localSource.updateTask(prevTask) },
+            onNetworkError = {
+                localSource.updateUnsyncTask(task.id)
+                task
+            }
         )
     }
 
     override suspend fun removeTask(task: Task): Resource<Task> {
         return networkManagerFromAction(
-            localRequest = {},
-            remoteRequest = { remoteSource.removeTask(task) },
-            revertDataRequest = {},
-            syncDataIfNeeded = { localSource.removeTask(task) }
+            onLocalRequest = {},
+            onRemoteRequest = { remoteSource.removeTask(task) },
+            onRevertDataRequest = {},
+            onSyncDataIfNeeded = { localSource.removeTask(task) },
+            onNetworkError = {
+                localSource.removeUnsyncTask(task.id)
+                task
+            }
         )
     }
 
-    override suspend fun synchronizeTasks() {
+    override suspend fun shouldSynchronizeTasks(): Boolean {
+        return localSource.shouldSynchronizeTasks()
+    }
+
+    override suspend fun synchronizeTasks(): Resource<List<Task>> {
         val deletedTasksIds = localSource.getUnsyncDeletedTasksIds()
         val updatedTasks = localSource.getUnsyncUpdatedTasks()
-        if (deletedTasksIds.isEmpty() || updatedTasks.isEmpty())
-            return
-
         val syncTasks = SyncTasksDto(
             deletedTasksIds,
             updatedTasks.map { mapFromTaskToDto(it) }
         )
-        networkManagerFromAction(
-            localRequest = {},
-            remoteRequest = { remoteSource.synchronizeTasks(syncTasks) },
-            revertDataRequest = {},
-            syncDataIfNeeded = {
+        return networkManagerFromAction(
+            onRemoteRequest = { remoteSource.synchronizeTasks(syncTasks) },
+            onSyncData = {
                 localSource.removeUnsyncTasks()
                 localSource.refreshTasks(it)
             }

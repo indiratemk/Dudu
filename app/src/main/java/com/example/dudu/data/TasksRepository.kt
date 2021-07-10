@@ -16,5 +16,7 @@ interface TasksRepository {
 
     suspend fun removeTask(task: Task): Resource<Task>
 
-    suspend fun synchronizeTasks()
+    suspend fun shouldSynchronizeTasks(): Boolean
+
+    suspend fun synchronizeTasks(): Resource<List<Task>>
 }

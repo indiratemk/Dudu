@@ -134,33 +134,38 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     }
 
     private fun subscribeObservers() {
+        val networkConnection = NetworkConnection(this)
+
+        networkConnection.observe(this, { isConnected ->
+            if (isConnected) {
+                tasksViewModel.synchronizeTasks()
+                binding.tvConnection.visibility = View.GONE
+            } else {
+                binding.tvConnection.apply {
+                    setBackgroundColor(
+                        ContextCompat.getColor(this@MainActivity, R.color.label_tertiary)
+                    )
+                    text = getString(R.string.main_offline_mode)
+                    visibility = View.VISIBLE
+                }
+            }
+        })
+
         tasksViewModel.tasksResource.observe(this, { resource ->
             when (resource) {
                 is Resource.Loading -> {
-                    with(binding) {
-                        rvTasks.visibility = View.GONE
-                        tvEmpty.visibility = View.GONE
-                        shimmerLoading.visibility = View.VISIBLE
-                    }
+                    showLoading()
                 }
                 is Resource.Loaded -> {
                     tasksAdapter.updateTasks(resource.data)
-                    with(binding) {
-                        if (tasksAdapter.itemCount == 0) {
-                            rvTasks.visibility = View.GONE
-                            tvEmpty.visibility = View.VISIBLE
-                            shimmerLoading.visibility = View.GONE
-                        } else {
-                            rvTasks.visibility = View.VISIBLE
-                            tvEmpty.visibility = View.GONE
-                            shimmerLoading.visibility = View.GONE
-                        }
-                    }
+                    showData()
                     tasksViewModel.setShouldFetchRemote(false)
                 }
                 is Resource.Error -> {
-                    // TODO: 7/8/21 убрать захардкоденный текст
-                    UIUtil.showSnackbar(binding.coordinatorContainer, "Произошла ошибка")
+                    showData()
+                    resource.message?.let {
+                        UIUtil.showSnackbar(binding.coordinatorContainer, it)
+                    }
                 }
             }
         })
@@ -199,9 +204,49 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                             coordinatorContainer,
                             event.message ?: getString(R.string.unknown_error_message)
                         )
+                        is TaskEvent.SynchronizationLoading -> {
+                            tvConnection.apply {
+                                setBackgroundColor(
+                                    ContextCompat.getColor(this@MainActivity, R.color.blue)
+                                )
+                                text = getString(R.string.main_synchronization)
+                                visibility = View.VISIBLE
+                            }
+                            showLoading()
+                        }
+                        is TaskEvent.SuccessSynchronization -> {
+                            tvConnection.visibility = View.GONE
+                            showData()
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                getString(R.string.main_data_synchronized)
+                            )
+                        }
+                        is TaskEvent.FailSynchronization -> {
+                            tvConnection.visibility = View.GONE
+                            showData()
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                event.message ?: getString(R.string.main_synchronization_error)
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private fun showLoading() {
+        with(binding) {
+            rvTasks.visibility = View.GONE
+            shimmerLoading.visibility = View.VISIBLE
+        }
+    }
+
+    private fun showData() {
+        with(binding) {
+            rvTasks.visibility = View.VISIBLE
+            shimmerLoading.visibility = View.GONE
         }
     }
 

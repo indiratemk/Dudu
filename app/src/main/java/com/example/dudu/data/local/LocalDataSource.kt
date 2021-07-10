@@ -68,6 +68,10 @@ class LocalDataSource(
             .map { id -> mapFromEntityToTask(taskDao.getTask(id)) }
     }
 
+    suspend fun shouldSynchronizeTasks(): Boolean {
+        return getUnsyncUpdatedTasks().isNotEmpty() || getUnsyncDeletedTasksIds().isNotEmpty()
+    }
+
     suspend fun removeUnsyncTasks() {
         unsyncTaskDao.clearUnsyncTasks()
     }

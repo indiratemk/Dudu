@@ -1,9 +1,6 @@
 package com.example.dudu.ui.tasks
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.dudu.data.TasksRepository
 import com.example.dudu.data.helpers.Resource
 import com.example.dudu.data.models.Task
@@ -61,6 +58,20 @@ class TasksViewModel @Inject constructor(
                     taskEventChannel.send(TaskEvent.SuccessRemoving)
                 is Resource.Error ->
                     taskEventChannel.send(TaskEvent.FailRemoving(resource.message, task))
+            }
+        }
+    }
+
+    fun synchronizeTasks() {
+        viewModelScope.launch {
+            if (repository.shouldSynchronizeTasks()) {
+                taskEventChannel.send(TaskEvent.SynchronizationLoading)
+                when (val resource = repository.synchronizeTasks()) {
+                    is Resource.Loaded ->
+                        taskEventChannel.send(TaskEvent.SuccessSynchronization)
+                    is Resource.Error ->
+                        taskEventChannel.send(TaskEvent.FailSynchronization(resource.message))
+                }
             }
         }
     }

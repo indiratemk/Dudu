@@ -2,27 +2,44 @@ package com.example.dudu.data.helpers
 
 import com.example.dudu.data.remote.errors.BackendException
 import com.example.dudu.data.remote.errors.NetworkException
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 suspend fun <ResultType : Any> networkManagerFromAction(
-    localRequest: suspend () -> Unit,
-    remoteRequest: suspend () -> ResultType,
-    revertDataRequest: suspend () -> Unit,
-    syncDataIfNeeded: suspend (ResultType) -> Unit = {}
+    onLocalRequest: suspend () -> Unit,
+    onRemoteRequest: suspend () -> ResultType,
+    onRevertDataRequest: suspend () -> Unit,
+    onSyncDataIfNeeded: suspend () -> Unit = {},
+    onNetworkError: suspend () -> ResultType
 ): Resource<ResultType> {
     return try {
-        localRequest()
-        val result = remoteRequest()
-        syncDataIfNeeded(result)
+        onLocalRequest()
+        val result = onRemoteRequest()
+        onSyncDataIfNeeded()
         Resource.Loaded(result)
     } catch (exception : BackendException) {
-        revertDataRequest()
+        onRevertDataRequest()
         Resource.Error(exception.errorMessage)
     } catch (exception : NetworkException) {
-        // TODO: 7/7/21 сохранить запрос
-        revertDataRequest()
+        onSyncDataIfNeeded()
+        Resource.Loaded(onNetworkError())
+    }
+}
+
+suspend fun <ResultType : Any> networkManagerFromAction(
+    onRemoteRequest: suspend () -> ResultType,
+    onSyncData: suspend (ResultType) -> Unit
+): Resource<ResultType> {
+    return try {
+        val result = onRemoteRequest()
+        onSyncData(result)
+        Resource.Loaded(result)
+    } catch (exception: BackendException) {
+        Resource.Error(exception.errorMessage)
+    } catch (exception: Exception) {
         Resource.Error(exception.message)
-//                Resource.Success(task)
     }
 }
 
