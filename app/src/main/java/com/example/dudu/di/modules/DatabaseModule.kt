@@ -3,6 +3,8 @@ package com.example.dudu.di.modules
 import android.app.Application
 import androidx.room.Room
 import com.example.dudu.data.local.*
+import com.example.dudu.data.local.daos.TaskDao
+import com.example.dudu.data.local.daos.UnsyncTaskDao
 import com.example.dudu.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides

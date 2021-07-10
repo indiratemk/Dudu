@@ -2,6 +2,8 @@ package com.example.dudu.data.local
 
 import com.example.dudu.data.helpers.mapFromEntityToTask
 import com.example.dudu.data.helpers.mapFromTaskToEntity
+import com.example.dudu.data.local.daos.TaskDao
+import com.example.dudu.data.local.daos.UnsyncTaskDao
 import com.example.dudu.data.local.entities.DeletedTaskEntity
 import com.example.dudu.data.local.entities.UpdatedTaskEntity
 import com.example.dudu.data.models.Task

@@ -1,4 +1,4 @@
-package com.example.dudu.data.local
+package com.example.dudu.data.local.daos
 
 import androidx.room.*
 import com.example.dudu.data.local.entities.DeletedTaskEntity
