@@ -239,12 +239,18 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
     private fun showLoading() {
         with(binding) {
             rvTasks.visibility = View.GONE
+            tvEmpty.visibility = View.GONE
             shimmerLoading.visibility = View.VISIBLE
         }
     }
 
     private fun showData() {
         with(binding) {
+            if (tasksAdapter.isEmpty()) {
+                tvEmpty.visibility = View.VISIBLE
+            } else {
+                tvEmpty.visibility = View.GONE
+            }
             rvTasks.visibility = View.VISIBLE
             shimmerLoading.visibility = View.GONE
         }

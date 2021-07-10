@@ -23,9 +23,7 @@ class TaskAdapter(
         holder.bind(tasks[position], listener)
     }
 
-    override fun getItemCount(): Int {
-        return tasks.size
-    }
+    override fun getItemCount() = tasks.size
 
     fun updateTasks(tasks: List<Task>) {
         val callback = DiffCallbackImpl(
@@ -45,4 +43,6 @@ class TaskAdapter(
         val diffResult = DiffUtil.calculateDiff(callback)
         diffResult.dispatchUpdatesTo(this)
     }
+
+    fun isEmpty() = itemCount == 0
 }

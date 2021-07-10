@@ -28,6 +28,7 @@
     <string name="main_synchronization">Идет синхронизация…</string>
     <string name="main_data_synchronized">Данные синхронизированы</string>
     <string name="main_synchronization_error">Данные не были синхронизированы. Попробуем позже</string>
+    <string name="main_empty_tasks_list">Список заданий пуст =)</string>
 
     <string name="create_task_menu_action_save">Сохранить</string>
     <string name="create_task_input_hint">Что надо сделать…</string>
