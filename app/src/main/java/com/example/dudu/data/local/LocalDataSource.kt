@@ -80,4 +80,8 @@ class LocalDataSource @Inject constructor(
     suspend fun removeUnsyncTasks() {
         unsyncTaskDao.clearUnsyncTasks()
     }
+
+    suspend fun getTasksByDeadlineCount(deadline: Long): Int {
+        return taskDao.getTasksByDeadlineCount(deadline)
+    }
 }

@@ -11,8 +11,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.example.dudu.*
@@ -24,7 +22,6 @@ import com.example.dudu.ui.tasks.*
 import com.example.dudu.util.*
 import kotlinx.coroutines.flow.collect
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), TaskClickListener {
@@ -46,7 +43,6 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         tasksViewModel =
             ViewModelProvider(this, viewModelFactory)[TasksViewModel::class.java]
 
-        scheduleReminderWork()
         initUI()
         subscribeObservers()
     }
@@ -277,23 +273,6 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 }
             }
         }
-    }
-
-    private fun scheduleReminderWork() {
-        val currentDate = Calendar.getInstance()
-        val notificationDate = Calendar.getInstance()
-        notificationDate.set(Calendar.HOUR_OF_DAY, 6)
-        notificationDate.set(Calendar.MINUTE, 0)
-        notificationDate.set(Calendar.SECOND, 0)
-        if (notificationDate.before(currentDate)) {
-            notificationDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-        val timeDiff = notificationDate.timeInMillis.minus(currentDate.timeInMillis)
-        val dailyWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
-            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
-            .build()
-        WorkManager.getInstance(this)
-            .enqueue(dailyWorkRequest)
     }
 
     override fun onTaskClick(task: Task) {

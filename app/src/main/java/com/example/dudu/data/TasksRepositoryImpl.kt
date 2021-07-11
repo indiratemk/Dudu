@@ -91,4 +91,8 @@ class TasksRepositoryImpl @Inject constructor(
             }
         )
     }
+
+    override suspend fun getTasksByDeadlineCount(deadline: Long): Int {
+        return localSource.getTasksByDeadlineCount(deadline)
+    }
 }

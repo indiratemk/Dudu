@@ -19,4 +19,6 @@ interface TasksRepository {
     suspend fun shouldSynchronizeTasks(): Boolean
 
     suspend fun synchronizeTasks(): Resource<List<Task>>
+
+    suspend fun getTasksByDeadlineCount(deadline: Long): Int
 }

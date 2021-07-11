@@ -1,6 +1,7 @@
 package com.example.dudu.di
 
 import android.app.Application
+import com.example.dudu.DuduApp
 import com.example.dudu.di.modules.DatabaseModule
 import com.example.dudu.di.modules.NetworkModule
 import com.example.dudu.di.modules.RepositoryModule
@@ -26,6 +27,8 @@ interface AppComponent {
             @BindsInstance application: Application
         ): AppComponent
     }
+
+    fun inject(application: DuduApp)
 
     fun inject(activity: MainActivity)
 

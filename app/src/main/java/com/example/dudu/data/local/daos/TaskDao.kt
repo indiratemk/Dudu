@@ -16,6 +16,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getTask(taskId: String): TaskEntity
 
+    @Query("SELECT COUNT(*) FROM tasks WHERE (deadline = :deadline AND isDone = 0)")
+    suspend fun getTasksByDeadlineCount(deadline: Long): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: TaskEntity)
 
