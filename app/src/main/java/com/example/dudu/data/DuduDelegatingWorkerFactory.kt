@@ -11,5 +11,6 @@ class DuduDelegatingWorkerFactory @Inject constructor(
 
     init {
         addFactory(ReminderWorkerFactory(repository))
+        addFactory(SynchronizationWorkerFactory(repository))
     }
 }

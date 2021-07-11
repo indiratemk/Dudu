@@ -1,15 +1,14 @@
 package com.example.dudu
 
 import android.app.Application
-import androidx.work.Configuration
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.work.*
 import com.example.dudu.data.DuduDelegatingWorkerFactory
 import com.example.dudu.data.local.SharedPrefs
 import com.example.dudu.di.AppComponent
 import com.example.dudu.di.DaggerAppComponent
 import com.example.dudu.util.Constants
 import com.example.dudu.util.TasksReminderWorker
+import com.example.dudu.util.TasksSynchronizationWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -33,7 +32,6 @@ class DuduApp : Application(), Configuration.Provider {
 
     override fun getWorkManagerConfiguration(): Configuration {
         return Configuration.Builder()
-            .setMinimumLoggingLevel(android.util.Log.INFO)
             .setWorkerFactory(workerFactory)
             .build()
     }
@@ -47,6 +45,18 @@ class DuduApp : Application(), Configuration.Provider {
                 .build()
             WorkManager.getInstance(this)
                 .enqueue(reminderWorkRequest)
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val synchronizationWorkRequest =
+                PeriodicWorkRequestBuilder<TasksSynchronizationWorker>(8,
+                    TimeUnit.HOURS)
+                    .setConstraints(constraints)
+                    .build()
+            WorkManager.getInstance(this)
+                .enqueue(synchronizationWorkRequest)
 
             sharedPrefs.isAppFirstOpened = false
         }
