@@ -12,6 +12,5 @@ object Constants {
     const val RESULT_TASK_UPDATED = 105
 
     const val REMINDER_WORK_TAG = "REMINDER_WORK_TAG"
-    const val FILE_NAME = "dudu"
-    const val FILE_EXTENSION = ".txt"
+    const val DUDU_PREFERENCES = "DUDU_PREFERENCES"
 }
