@@ -1,7 +1,6 @@
 package com.example.dudu.data.helpers
 
 import com.example.dudu.data.remote.errors.BackendException
-import com.example.dudu.data.remote.errors.NetworkException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -22,7 +21,7 @@ suspend fun <ResultType : Any> networkManagerFromAction(
     } catch (exception : BackendException) {
         onRevertDataRequest()
         Resource.Error(exception.errorMessage)
-    } catch (exception : NetworkException) {
+    } catch (exception : Exception) {
         onSyncDataIfNeeded()
         Resource.Loaded(onNetworkError())
     }
