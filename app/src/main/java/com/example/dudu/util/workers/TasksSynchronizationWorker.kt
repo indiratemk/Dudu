@@ -1,4 +1,4 @@
-package com.example.dudu.util
+package com.example.dudu.util.workers
 
 import android.content.Context
 import androidx.work.CoroutineWorker

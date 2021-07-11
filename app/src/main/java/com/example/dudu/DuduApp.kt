@@ -2,13 +2,13 @@ package com.example.dudu
 
 import android.app.Application
 import androidx.work.*
-import com.example.dudu.data.DuduDelegatingWorkerFactory
+import com.example.dudu.util.workers.DuduDelegatingWorkerFactory
 import com.example.dudu.data.local.SharedPrefs
 import com.example.dudu.di.AppComponent
 import com.example.dudu.di.DaggerAppComponent
 import com.example.dudu.util.Constants
-import com.example.dudu.util.TasksReminderWorker
-import com.example.dudu.util.TasksSynchronizationWorker
+import com.example.dudu.util.workers.TasksReminderWorker
+import com.example.dudu.util.workers.TasksSynchronizationWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 

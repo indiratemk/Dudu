@@ -1,10 +1,10 @@
-package com.example.dudu.data
+package com.example.dudu.util.workers
 
 import android.content.Context
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
-import com.example.dudu.util.TasksSynchronizationWorker
+import com.example.dudu.data.TasksRepository
 
 class SynchronizationWorkerFactory(
     private val repository: TasksRepository
