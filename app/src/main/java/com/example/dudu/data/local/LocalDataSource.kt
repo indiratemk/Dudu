@@ -7,12 +7,14 @@ import com.example.dudu.data.local.daos.UnsyncTaskDao
 import com.example.dudu.data.local.entities.DeletedTaskEntity
 import com.example.dudu.data.local.entities.UpdatedTaskEntity
 import com.example.dudu.data.models.Task
+import com.example.dudu.di.scopes.AppScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+@AppScope
 class LocalDataSource @Inject constructor(
     private val taskDao: TaskDao,
     private val unsyncTaskDao: UnsyncTaskDao

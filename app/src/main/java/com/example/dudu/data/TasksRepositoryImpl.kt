@@ -8,9 +8,11 @@ import com.example.dudu.data.local.LocalDataSource
 import com.example.dudu.data.models.Task
 import com.example.dudu.data.remote.RemoteDataSource
 import com.example.dudu.data.remote.dtos.SyncTasksDto
+import com.example.dudu.di.scopes.AppScope
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+@AppScope
 class TasksRepositoryImpl @Inject constructor(
     private val localSource: LocalDataSource,
     private val remoteSource: RemoteDataSource
