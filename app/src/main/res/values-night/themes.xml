@@ -11,6 +11,8 @@
         <item name="android:actionMenuTextColor">@color/blue</item>
         <item name="android:datePickerDialogTheme">@style/DatePicker</item>
         <item name="android:navigationBarColor">@color/back_primary</item>
+        <item name="md_color_content">@color/label_primary</item>
+        <item name="md_color_button_text">@color/blue</item>
     </style>
 
     <style name="DatePicker" parent="Theme.MaterialComponents.DayNight.Dialog">

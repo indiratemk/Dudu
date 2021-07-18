@@ -7,6 +7,8 @@
     <color name="label_secondary">#99FFFFFF</color>
     <color name="label_tertiary">#66FFFFFF</color>
     <color name="label_disable">#26FFFFFF</color>
+    <color name="label_info">#F7F6F2</color>
+    <color name="label_placeholder">#33FFFFFF</color>
     <color name="support_separator">#33FFFFFF</color>
     <color name="support_overlay">#52000000</color>
     <color name="red">#FF453A</color>

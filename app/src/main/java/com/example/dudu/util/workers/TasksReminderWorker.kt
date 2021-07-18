@@ -1,4 +1,4 @@
-package com.example.dudu.util
+package com.example.dudu.util.workers
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,37 +8,36 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.work.*
+import androidx.work.CoroutineWorker
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import com.example.dudu.R
-import com.example.dudu.models.Task
+import com.example.dudu.data.TasksRepository
 import com.example.dudu.ui.MainActivity
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.io.File
-import java.io.FileInputStream
+import com.example.dudu.util.Constants
+import com.example.dudu.util.DateFormatter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class TasksReminderWorker(
     private val appContext: Context,
-    workerParams: WorkerParameters
-) : Worker(appContext, workerParams) {
+    workerParams: WorkerParameters,
+    private val repository: TasksRepository
+) : CoroutineWorker(appContext, workerParams) {
 
-    override fun doWork(): Result {
-        val tasks = getCachedTasks()
-        val currentDateInMillis = DateFormatter.getCurrentDateWithoutTime().time
+    override suspend fun doWork(): Result {
+        return withContext(Dispatchers.IO) {
+            val tasksCount = repository.getTasksByDeadlineCount(DateFormatter.getCurrentDateInSeconds())
+            if (tasksCount > 0)
+                sendReminderNotification(tasksCount)
 
-        val todayTasks = tasks.filter {
-            it.deadline != null &&
-                    it.deadline.time == currentDateInMillis &&
-                    !it.isDone
+            scheduleWork()
+
+            Result.success()
         }
-
-        if (todayTasks.isNotEmpty())
-            sendReminderNotification(todayTasks.size)
-        scheduleWork()
-
-        return Result.success()
     }
 
     private fun sendReminderNotification(size: Int) {
@@ -81,38 +80,25 @@ class TasksReminderWorker(
     }
 
     private fun scheduleWork() {
-        val currentDate = Calendar.getInstance()
-        val notificationDate = Calendar.getInstance()
-        notificationDate.set(Calendar.HOUR_OF_DAY, 6)
-        notificationDate.set(Calendar.MINUTE, 0)
-        notificationDate.set(Calendar.SECOND, 0)
-        if (notificationDate.before(currentDate)) {
-            notificationDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-        val timeDiff = notificationDate.timeInMillis.minus(currentDate.timeInMillis)
-        val dailyWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
-            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
+        val reminderWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
+            .setInitialDelay(getWorkRepetitionTimeInMillis(), TimeUnit.MILLISECONDS)
+            .addTag(Constants.REMINDER_WORK_TAG)
             .build()
-        WorkManager.getInstance(applicationContext)
-            .enqueue(dailyWorkRequest)
+        WorkManager.getInstance(appContext)
+            .enqueue(reminderWorkRequest)
     }
 
-    private fun getCachedTasks(): List<Task> {
-        val tasks = mutableListOf<Task>()
-        try {
-            val cachePath = appContext.cacheDir
-            val inputStream =
-                FileInputStream(File("$cachePath/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
-            val size: Int = inputStream.available()
-            val buffer = ByteArray(size)
-            inputStream.use { it.read(buffer) }
-
-            val json = String(buffer, Charsets.UTF_8)
-            val type = object : TypeToken<List<Task>>() {}.type
-            tasks.addAll(Gson().fromJson<List<Task>>(json, type))
-        } catch (e: Exception) {
-            e.printStackTrace()
+    companion object {
+        fun getWorkRepetitionTimeInMillis(): Long {
+            val currentDate = Calendar.getInstance()
+            val notificationDate = Calendar.getInstance()
+            notificationDate.set(Calendar.HOUR_OF_DAY, 6)
+            notificationDate.set(Calendar.MINUTE, 0)
+            notificationDate.set(Calendar.SECOND, 0)
+            if (notificationDate.before(currentDate)) {
+                notificationDate.add(Calendar.HOUR_OF_DAY, 24)
+            }
+            return notificationDate.timeInMillis.minus(currentDate.timeInMillis)
         }
-        return tasks
     }
 }

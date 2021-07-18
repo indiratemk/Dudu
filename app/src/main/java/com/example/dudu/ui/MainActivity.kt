@@ -3,39 +3,48 @@ package com.example.dudu.ui
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import com.example.dudu.*
+import com.example.dudu.data.helpers.Resource
+import com.example.dudu.data.models.Task
 import com.example.dudu.databinding.MainActivityBinding
-import com.example.dudu.models.Task
 import com.example.dudu.ui.task.CreateTaskActivity
-import com.example.dudu.ui.tasks.TaskClickListener
-import com.example.dudu.ui.tasks.TasksAdapter
+import com.example.dudu.ui.tasks.*
 import com.example.dudu.util.*
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.io.File
-import java.io.FileInputStream
+import kotlinx.coroutines.flow.collect
 import java.util.*
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), TaskClickListener {
 
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
     private lateinit var binding: MainActivityBinding
-    private val tasksAdapter = TasksAdapter(this)
+    private lateinit var tasksViewModel: TasksViewModel
+    private val tasksAdapter = TaskAdapter(this)
+    private lateinit var loadingDialog: MaterialDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        scheduleReminderWork()
+        DuduApp.appComponent.inject(this)
+        tasksViewModel =
+            ViewModelProvider(this, viewModelFactory)[TasksViewModel::class.java]
+
         initUI()
+        subscribeObservers()
     }
 
     private fun initUI() {
@@ -48,17 +57,12 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             }
             headerLayout.ibVisibility.apply {
                 setOnClickListener {
-                    isSelected = !isSelected
-                    if (isSelected) {
-                        tasksAdapter.showDoneTasks()
-                        rvTasks.smoothScrollToPosition(0)
-                    } else {
-                        tasksAdapter.hideDoneTasks()
-                    }
+                    tasksViewModel.setShowDoneTasks(!isSelected)
                 }
             }
             headerLayout.ibChangeMode.apply {
-                val currentMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                val currentMode =
+                    resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 isSelected = when (currentMode) {
                     Configuration.UI_MODE_NIGHT_YES -> true
                     else -> false
@@ -76,12 +80,13 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 binding.rvTasks.smoothScrollToPosition(0)
             }
         }
+        loadingDialog = MaterialDialog(this)
+            .customView(R.layout.layout_loading)
+            .cancelable(false)
         initRV()
-        updateHeader()
     }
 
     private fun initRV() {
-        tasksAdapter.tasks = getPreparedData()
         binding.rvTasks.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = tasksAdapter
@@ -92,9 +97,12 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.green),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
-                ) {
-                    tasksAdapter.updateTaskStatus(it)
-                    updateHeader()
+                ) { position ->
+                    val task = tasksAdapter.tasks[position]
+                    tasksViewModel.onTaskCheckedChanged(task, !task.isDone)
+                    if (binding.headerLayout.ibVisibility.isSelected) {
+                        tasksAdapter.notifyItemChanged(position)
+                    }
                 }
             }
 
@@ -102,17 +110,18 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 return ControlButton(
                     ContextCompat.getColor(this@MainActivity, R.color.red),
                     ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
-                ) {
-                    tasksAdapter.removeTask(it)
-                    updateHeader()
-                    UIUtil.showSnackbar(
-                        binding.coordinatorContainer,
-                        getString(R.string.main_task_removed_message),
-                        getString(R.string.main_task_removed_action)
-                    ) {
-                        tasksAdapter.restoreTask()
-                        binding.rvTasks.smoothScrollToPosition(tasksAdapter.itemCount - 1)
-                    }
+                ) { position ->
+                    UIUtil.createDialogWithAction(
+                        this@MainActivity,
+                        R.string.task_removing_message,
+                        onCancel = { tasksAdapter.notifyItemChanged(position) },
+                        onPositive = {
+                            loadingDialog.show()
+                            val task = tasksAdapter.tasks[position]
+                            tasksViewModel.removeTask(task)
+                        },
+                        onNegative = { tasksAdapter.notifyItemChanged(position) }
+                    ).show()
                 }
             }
         }
@@ -120,154 +129,157 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         touchHelper.attachToRecyclerView(binding.rvTasks)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            Constants.REQUEST_EDIT_TASK -> {
-                val task = data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)
-                when (resultCode) {
-                    Constants.RESULT_TASK_REMOVED -> {
-                        task?.let { tasksAdapter.removeTask(it) }
-                    }
-                    Constants.RESULT_TASK_EDITED -> {
-                        task?.let { tasksAdapter.updateTask(it) }
-                    }
-                }
-            }
-            Constants.REQUEST_CREATE_TASK -> {
-                val task = data?.getParcelableExtra<Task>(Constants.EXTRA_TASK)
-                if (resultCode == Constants.RESULT_TASK_CREATED) {
-                    task?.let { tasksAdapter.addTask(it) }
-                }
-            }
-        }
-    }
+    private fun subscribeObservers() {
+        val networkConnection = NetworkConnection(this)
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        val tasks = savedInstanceState.getParcelableArrayList<Task>(Constants.EXTRA_TASKS)
-        tasks?.let {
-            tasksAdapter.tasks = it.toMutableList()
-        }
-        updateHeader()
-
-        val isSelected = savedInstanceState.getBoolean(Constants.EXTRA_SHOW_DONE_TASKS)
-        binding.headerLayout.ibVisibility.isSelected = isSelected
-        if (isSelected) {
-            tasksAdapter.showDoneTasks()
-        } else {
-            tasksAdapter.hideDoneTasks()
-        }
-        super.onRestoreInstanceState(savedInstanceState)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        val tasks = arrayListOf<Task>()
-        tasks.addAll(tasksAdapter.tasks)
-
-        outState.putParcelableArrayList(Constants.EXTRA_TASKS, tasks)
-        outState.putBoolean(Constants.EXTRA_SHOW_DONE_TASKS, binding.headerLayout.ibVisibility.isSelected)
-        super.onSaveInstanceState(outState)
-    }
-
-    private fun scheduleReminderWork() {
-        val currentDate = Calendar.getInstance()
-        val notificationDate = Calendar.getInstance()
-        notificationDate.set(Calendar.HOUR_OF_DAY, 6)
-        notificationDate.set(Calendar.MINUTE, 0)
-        notificationDate.set(Calendar.SECOND, 0)
-        if (notificationDate.before(currentDate)) {
-            notificationDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-        val timeDiff = notificationDate.timeInMillis.minus(currentDate.timeInMillis)
-        val dailyWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
-            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
-            .build()
-        WorkManager.getInstance(this)
-            .enqueue(dailyWorkRequest)
-    }
-
-    private fun getPreparedData(): MutableList<Task> {
-        val tasks = getMockTasks()
-        tasks.addAll(getCachedTasks())
-        tasks.sortWith { o1, o2 ->
-            if (o1.deadline == null && o2.deadline == null) {
-                return@sortWith when {
-                    o1.priority > o2.priority -> -1
-                    o1.priority == o2.priority -> 0
-                    else -> 1
-                }
-            } else if (o1.deadline != null && o2.deadline == null) {
-                return@sortWith -1
-            } else if (o1.deadline == null && o2.deadline != null) {
-                return@sortWith 1
+        networkConnection.observe(this, { isConnected ->
+            if (isConnected) {
+                tasksViewModel.synchronizeTasks()
+                binding.tvConnection.visibility = View.GONE
             } else {
-                return@sortWith when {
-                    o1.deadline!!.before(o2.deadline) -> -1
-                    o1.deadline.after(o2.deadline) -> 1
-                    else -> {
-                        when {
-                            o1.priority > o2.priority -> -1
-                            o1.priority == o2.priority -> 0
-                            else -> 1
+                binding.tvConnection.apply {
+                    setBackgroundColor(
+                        ContextCompat.getColor(this@MainActivity, R.color.label_tertiary)
+                    )
+                    text = getString(R.string.main_offline_mode)
+                    visibility = View.VISIBLE
+                }
+            }
+        })
+
+        tasksViewModel.tasksResource.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    showLoading()
+                }
+                is Resource.Loaded -> {
+                    tasksAdapter.updateTasks(resource.data)
+                    showData()
+                    tasksViewModel.setShouldFetchRemote(false)
+                }
+                is Resource.Error -> {
+                    showData()
+                    resource.message?.let {
+                        UIUtil.showSnackbar(binding.coordinatorContainer, it)
+                    }
+                }
+            }
+        })
+
+        tasksViewModel.doneTasksCount.observe(this, {
+            binding.headerLayout.tvCompleted.text = getString(
+                R.string.main_completed_label, it
+            )
+        })
+
+        tasksViewModel.showDone.observe(this, {
+            binding.headerLayout.ibVisibility.isSelected = it
+        })
+
+        lifecycleScope.launchWhenStarted {
+            tasksViewModel.taskEvent.collect { event ->
+                with(binding) {
+                    when (event) {
+                        is TaskEvent.SuccessRemoving -> {
+                            loadingDialog.dismiss()
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                getString(R.string.main_task_removed_message)
+                            )
+                        }
+                        is TaskEvent.FailRemoving -> {
+                            loadingDialog.dismiss()
+                            tasksAdapter.notifyItemChanged(tasksAdapter.tasks.indexOf(event.task))
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                event.message ?: getString(R.string.unknown_error_message)
+                            )
+                        }
+                        is TaskEvent.SuccessUpdating -> {}
+                        is TaskEvent.FailUpdating -> UIUtil.showSnackbar(
+                            coordinatorContainer,
+                            event.message ?: getString(R.string.unknown_error_message)
+                        )
+                        is TaskEvent.SynchronizationLoading -> {
+                            tvConnection.apply {
+                                setBackgroundColor(
+                                    ContextCompat.getColor(this@MainActivity, R.color.blue)
+                                )
+                                text = getString(R.string.main_synchronization)
+                                visibility = View.VISIBLE
+                            }
+                            showLoading()
+                        }
+                        is TaskEvent.SuccessSynchronization -> {
+                            tvConnection.visibility = View.GONE
+                            showData()
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                getString(R.string.main_data_synchronized)
+                            )
+                        }
+                        is TaskEvent.FailSynchronization -> {
+                            tvConnection.visibility = View.GONE
+                            showData()
+                            UIUtil.showSnackbar(
+                                coordinatorContainer,
+                                event.message ?: getString(R.string.main_synchronization_error)
+                            )
                         }
                     }
                 }
             }
         }
-        return tasks
     }
 
-    private fun getMockTasks(): MutableList<Task> {
-        val tasks = mutableListOf<Task>()
-        val currentDate = DateFormatter.getCurrentDateWithoutTime()
-        for (i in 1..10) {
-            val task = when {
-                i % 2 == 0 -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_short), currentDate, 1, true)
-                }
-                i % 3 == 0 -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_normal), currentDate, 0, false)
-                }
-                else -> {
-                    Task(i.toString(), "$i" + getString(R.string.task_long), currentDate, 2, false)
+    private fun showLoading() {
+        with(binding) {
+            rvTasks.visibility = View.GONE
+            tvEmpty.visibility = View.GONE
+            shimmerLoading.visibility = View.VISIBLE
+        }
+    }
+
+    private fun showData() {
+        with(binding) {
+            if (tasksAdapter.isEmpty()) {
+                tvEmpty.visibility = View.VISIBLE
+            } else {
+                tvEmpty.visibility = View.GONE
+            }
+            rvTasks.visibility = View.VISIBLE
+            shimmerLoading.visibility = View.GONE
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            Constants.REQUEST_EDIT_TASK -> {
+                when (resultCode) {
+                    Constants.RESULT_TASK_REMOVED ->
+                        UIUtil.showSnackbar(binding.coordinatorContainer,
+                            getString(R.string.main_task_removed_message))
+                    Constants.RESULT_TASK_UPDATED ->
+                        UIUtil.showSnackbar(binding.coordinatorContainer,
+                            getString(R.string.main_task_updated_message))
                 }
             }
-            tasks.add(task)
+            Constants.REQUEST_CREATE_TASK -> {
+                when (resultCode) {
+                    Constants.RESULT_TASK_CREATED ->
+                        UIUtil.showSnackbar(binding.coordinatorContainer,
+                            getString(R.string.main_task_create_message))
+                }
+            }
         }
-        return tasks
-    }
-
-    private fun getCachedTasks(): List<Task> {
-        val tasks = mutableListOf<Task>()
-        try {
-            val inputStream =
-                FileInputStream(File("$cacheDir/${Constants.FILE_NAME}${Constants.FILE_EXTENSION}"))
-            val size: Int = inputStream.available()
-            val buffer = ByteArray(size)
-            inputStream.use { it.read(buffer) }
-
-            val json = String(buffer, Charsets.UTF_8)
-            val type = object : TypeToken<List<Task>>() {}.type
-            tasks.addAll(Gson().fromJson<List<Task>>(json, type))
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return tasks
-    }
-
-    private fun updateHeader() {
-        binding.headerLayout.tvCompleted.text = getString(
-            R.string.main_completed_label,
-            tasksAdapter.getDoneTasksSize()
-        )
-    }
-
-    override fun onTaskCheckedClick(task: Task) {
-        tasksAdapter.updateTaskStatus(task)
-        updateHeader()
     }
 
     override fun onTaskClick(task: Task) {
         CreateTaskActivity.startActivityForResult(this, task, Constants.REQUEST_EDIT_TASK)
+    }
+
+    override fun onCheckBoxClick(task: Task, isChecked: Boolean) {
+        tasksViewModel.onTaskCheckedChanged(task, isChecked)
     }
 }

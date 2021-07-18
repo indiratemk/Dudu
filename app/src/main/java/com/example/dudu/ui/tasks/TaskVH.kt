@@ -5,11 +5,10 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.dudu.R
+import com.example.dudu.data.models.Priority
+import com.example.dudu.data.models.Task
 import com.example.dudu.databinding.TaskItemBinding
-import com.example.dudu.models.Priority
-import com.example.dudu.models.Task
 import com.example.dudu.util.DateFormatter
-import java.util.*
 
 class TaskVH(
     private val binding: TaskItemBinding
@@ -19,12 +18,12 @@ class TaskVH(
         with(binding) {
             cbStatus.isChecked = task.isDone
             cbStatus.setOnClickListener {
-                listener.onTaskCheckedClick(task.copy(isDone = !task.isDone))
+                listener.onCheckBoxClick(task, cbStatus.isChecked)
             }
             clTask.setOnClickListener { listener.onTaskClick(task) }
             tvDescription.text = task.description
-            tvDeadline.visibility = if (task.deadline == null) View.GONE else View.VISIBLE
-            tvDeadline.text = task.deadline?.let { DateFormatter.formatDate(it, DateFormatter.DF1) }
+            tvDeadline.visibility = if (task.deadline == 0L) View.GONE else View.VISIBLE
+            tvDeadline.text = task.deadline.let { DateFormatter.formatDate(it, DateFormatter.DF1) }
             handleStatus(task)
         }
     }
@@ -46,7 +45,7 @@ class TaskVH(
         }
     }
 
-    private fun handlePriority(priority: Int) {
+    private fun handlePriority(priority: String) {
         with(binding.ivPriority) {
             when (priority) {
                 Priority.HIGH.value -> {
@@ -68,16 +67,14 @@ class TaskVH(
         }
     }
 
-    private fun handleDeadline(date: Date?) {
+    private fun handleDeadline(deadline: Long) {
         with(binding) {
-            if (date == null) {
+            if (deadline == 0L) {
                 cbStatus.buttonDrawable =
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
                 return
             }
-            val currentDateInMillis = DateFormatter.getCurrentDateWithoutTime().time
-            val deadlineInMillis = date.time
-            if (deadlineInMillis >= currentDateInMillis) {
+            if (deadline >= DateFormatter.getCurrentDateInSeconds()) {
                 cbStatus.buttonDrawable =
                     ContextCompat.getDrawable(itemView.context, R.drawable.cb_normal_selector)
             } else {

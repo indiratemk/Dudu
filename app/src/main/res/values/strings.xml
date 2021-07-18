@@ -11,13 +11,24 @@
         <item quantity="many">Сегодня вам надо сделать %d задач, не забудьте =)</item>
         <item quantity="other">Сегодня вам надо сделать %d задач, не забудьте =)</item>
     </plurals>
+    <string name="unknown_error_message">Произошла ошибка. Попробуйте позже</string>
+    <string name="loading_message">Подождите немного…</string>
+    <string name="task_removing_message">Вы действительно хотите удалить задачу?</string>
     <string name="main_title">Мои дела</string>
     <string name="main_completed_label">Выполнено: %d</string>
     <string name="main_visibility_btn_desc">Показать/скрыть</string>
     <string name="main_theme_mode_btn_desc">Сменить тему приложения</string>
     <string name="main_add_task_btn_desc">Создать задачу</string>
     <string name="main_task_removed_message">Задача удалена</string>
-    <string name="main_task_removed_action">Отменить</string>
+    <string name="main_task_removing_positive">Да</string>
+    <string name="main_task_removing_negative">Отмена</string>
+    <string name="main_task_updated_message">Задача обновлена</string>
+    <string name="main_task_create_message">Задача создана</string>
+    <string name="main_offline_mode">Оффлайн режим</string>
+    <string name="main_synchronization">Идет синхронизация…</string>
+    <string name="main_data_synchronized">Данные синхронизированы</string>
+    <string name="main_synchronization_error">Данные не были синхронизированы. Попробуем позже</string>
+    <string name="main_empty_tasks_list">Список заданий пуст =)</string>
 
     <string name="create_task_menu_action_save">Сохранить</string>
     <string name="create_task_input_hint">Что надо сделать…</string>
@@ -29,8 +40,4 @@
     <string name="create_task_btn_reset">Очистить</string>
     <string name="create_task_deadline_label">Сделать до</string>
     <string name="create_task_description_error">Введите пожалуйста описание задачи =)</string>
-
-    <string name="task_short">Проверка короткого таска</string>
-    <string name="task_normal">Проверка таска средней длины. И так, проверим</string>
-    <string name="task_long">Проверка длинного таска. Здесь надо написать очень много текста, чтобы можно было проверить, что происходит с текстом в такой ситуации</string>
 </resources>
