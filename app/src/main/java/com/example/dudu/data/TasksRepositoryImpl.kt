@@ -1,9 +1,8 @@
 package com.example.dudu.data
 
+import com.example.dudu.data.helpers.RequestManager
 import com.example.dudu.data.helpers.Resource
 import com.example.dudu.data.helpers.mapFromTaskToDto
-import com.example.dudu.data.helpers.networkManagerFromAction
-import com.example.dudu.data.helpers.networkManagerFromFlow
 import com.example.dudu.data.local.LocalDataSource
 import com.example.dudu.data.models.Task
 import com.example.dudu.data.remote.RemoteDataSource
@@ -15,17 +14,18 @@ import javax.inject.Inject
 @AppScope
 class TasksRepositoryImpl @Inject constructor(
     private val localSource: LocalDataSource,
-    private val remoteSource: RemoteDataSource
+    private val remoteSource: RemoteDataSource,
+    private val requestManager: RequestManager
 ) : TasksRepository {
 
     override fun getTasks(
         showDone: Boolean,
         shouldFetchRemote: Boolean
     ): Flow<Resource<List<Task>>> {
-        return networkManagerFromFlow(
-            localRequest = { localSource.getTasks(showDone) },
-            remoteRequest = { remoteSource.getTasks() },
-            saveRemoteResult = { tasks -> localSource.refreshTasks(tasks) },
+        return requestManager.executeRequest(
+            makeRequest = { remoteSource.getTasks() },
+            onAfterRequest = { localSource.getTasks(showDone) },
+            onSynchronization = { tasks -> localSource.refreshTasks(tasks) },
             shouldFetchRemote
         )
     }
@@ -35,43 +35,42 @@ class TasksRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addTask(task: Task): Resource<Task> {
-        return networkManagerFromAction(
-            onLocalRequest = { localSource.addTask(task) },
-            onRemoteRequest = { remoteSource.createTask(task) },
+        return requestManager.executeRequest(
+            onBeforeRequest = { localSource.addTask(task) },
+            makeRequest = { remoteSource.createTask(task) },
             onRevertOptimisticUpdate = { localSource.removeTask(task) },
             onSaveRequest = {
                 localSource.updateUnsyncTask(task.id)
                 task
             },
-            onUpdateData = { synchronizeTasks() }
+            onSynchronization = { synchronizeTasks() }
         )
     }
 
     override suspend fun updateTask(task: Task): Resource<Task> {
         val prevTask = localSource.getTask(task.id)
-        return networkManagerFromAction(
-            onLocalRequest = { localSource.updateTask(task) },
-            onRemoteRequest = { remoteSource.updateTask(task) },
+
+        return requestManager.executeRequest(
+            onBeforeRequest = { localSource.updateTask(task) },
+            makeRequest = { remoteSource.updateTask(task) },
             onRevertOptimisticUpdate = { localSource.updateTask(prevTask) },
             onSaveRequest = {
                 localSource.updateUnsyncTask(task.id)
                 task
             },
-            onUpdateData = { synchronizeTasks() }
+            onSynchronization = { synchronizeTasks() }
         )
     }
 
     override suspend fun removeTask(task: Task): Resource<Task> {
-        return networkManagerFromAction(
-            onLocalRequest = {},
-            onRemoteRequest = { remoteSource.removeTask(task) },
-            onRevertOptimisticUpdate = {},
-            onSyncLocalData = { localSource.removeTask(task) },
+        return requestManager.executeRequest(
+            makeRequest = { remoteSource.removeTask(task) },
+            onAfterRequest = { localSource.removeTask(task) },
             onSaveRequest = {
                 localSource.removeUnsyncTask(task.id)
                 task
             },
-            onUpdateData = { synchronizeTasks() }
+            onSynchronization = { synchronizeTasks() }
         )
     }
 
@@ -86,9 +85,9 @@ class TasksRepositoryImpl @Inject constructor(
             deletedTasksIds,
             updatedTasks.map { mapFromTaskToDto(it) }
         )
-        return networkManagerFromAction(
-            onRemoteRequest = { remoteSource.synchronizeTasks(syncTasks) },
-            onSyncLocalData = {
+        return requestManager.executeRequest(
+            makeRequest = { remoteSource.synchronizeTasks(syncTasks) },
+            onSynchronization = {
                 localSource.removeUnsyncTasks()
                 localSource.refreshTasks(it)
             }
