@@ -1,8 +1,10 @@
 package com.example.dudu.data.helpers
 
-import com.example.dudu.data.remote.errors.BackendException
+import com.example.dudu.data.errors.RequestException
+import com.example.dudu.data.errors.ErrorType
 import retrofit2.Response
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 suspend fun <T: Any> handleResponse(
     action: suspend () -> Response<T>
@@ -12,8 +14,15 @@ suspend fun <T: Any> handleResponse(
         if (response.isSuccessful) {
             return response.body()!!
         }
-        throw BackendException(response.message())
+        throw when (response.code()) {
+            404 -> RequestException(ErrorType.NOT_FOUND)
+            500 -> RequestException(ErrorType.SERVER)
+            else -> RequestException(ErrorType.UNKNOWN
+            )
+        }
     } catch (exception: SocketTimeoutException) {
-        throw BackendException(null)
+        throw RequestException(ErrorType.TIMEOUT)
+    } catch (exception: UnknownHostException) {
+        throw RequestException(ErrorType.CONNECTION)
     }
 }

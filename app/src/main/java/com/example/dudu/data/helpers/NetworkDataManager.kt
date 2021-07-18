@@ -1,6 +1,7 @@
 package com.example.dudu.data.helpers
 
-import com.example.dudu.data.remote.errors.BackendException
+import com.example.dudu.data.errors.RequestException
+import com.example.dudu.data.errors.ErrorType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -9,36 +10,45 @@ import kotlinx.coroutines.flow.map
 suspend fun <ResultType : Any> networkManagerFromAction(
     onLocalRequest: suspend () -> Unit,
     onRemoteRequest: suspend () -> ResultType,
-    onRevertDataRequest: suspend () -> Unit,
-    onSyncDataIfNeeded: suspend () -> Unit = {},
-    onNetworkError: suspend () -> ResultType
+    onRevertOptimisticUpdate: suspend () -> Unit,
+    onSyncLocalData: suspend () -> Unit = {},
+    onSaveRequest: suspend () -> ResultType,
+    onUpdateData: suspend () -> Unit
 ): Resource<ResultType> {
     return try {
         onLocalRequest()
         val result = onRemoteRequest()
-        onSyncDataIfNeeded()
+        onSyncLocalData()
         Resource.Loaded(result)
-    } catch (exception : BackendException) {
-        onRevertDataRequest()
-        Resource.Error(exception.errorMessage)
-    } catch (exception : Exception) {
-        onSyncDataIfNeeded()
-        Resource.Loaded(onNetworkError())
+    } catch (exception: RequestException) {
+        return when (exception.type) {
+            ErrorType.NOT_FOUND -> {
+                onUpdateData()
+                Resource.Error(exception.matchMessage())
+            }
+            ErrorType.UNKNOWN, ErrorType.TIMEOUT -> {
+                onRevertOptimisticUpdate()
+                Resource.Error(exception.matchMessage())
+            }
+            ErrorType.SERVER, ErrorType.CONNECTION -> {
+                onSyncLocalData()
+                Resource.Loaded(onSaveRequest())
+            }
+
+        }
     }
 }
 
 suspend fun <ResultType : Any> networkManagerFromAction(
     onRemoteRequest: suspend () -> ResultType,
-    onSyncData: suspend (ResultType) -> Unit
+    onSyncLocalData: suspend (ResultType) -> Unit
 ): Resource<ResultType> {
     return try {
         val result = onRemoteRequest()
-        onSyncData(result)
+        onSyncLocalData(result)
         Resource.Loaded(result)
-    } catch (exception: BackendException) {
-        Resource.Error(exception.errorMessage)
-    } catch (exception: Exception) {
-        Resource.Error(exception.message)
+    } catch (exception: RequestException) {
+        Resource.Error(exception.matchMessage())
     }
 }
 
@@ -55,13 +65,8 @@ fun <ResultType : Any, RequestType> networkManagerFromFlow(
             val resultFlow = try {
                 saveRemoteResult(remoteRequest())
                 localRequest().map { Resource.Loaded(it) }
-            } catch (exception: Exception) {
-                emit(
-                    if (exception is BackendException)
-                        Resource.Error(exception.errorMessage)
-                    else
-                        Resource.Error(exception.message)
-                )
+            } catch (exception: RequestException) {
+                emit(Resource.Error(exception.matchMessage()))
                 localRequest().map { Resource.Loaded(it) }
             }
             emitAll(resultFlow)

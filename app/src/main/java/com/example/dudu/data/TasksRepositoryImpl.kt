@@ -38,11 +38,12 @@ class TasksRepositoryImpl @Inject constructor(
         return networkManagerFromAction(
             onLocalRequest = { localSource.addTask(task) },
             onRemoteRequest = { remoteSource.createTask(task) },
-            onRevertDataRequest = { localSource.removeTask(task) },
-            onNetworkError = {
+            onRevertOptimisticUpdate = { localSource.removeTask(task) },
+            onSaveRequest = {
                 localSource.updateUnsyncTask(task.id)
                 task
-            }
+            },
+            onUpdateData = { synchronizeTasks() }
         )
     }
 
@@ -51,11 +52,12 @@ class TasksRepositoryImpl @Inject constructor(
         return networkManagerFromAction(
             onLocalRequest = { localSource.updateTask(task) },
             onRemoteRequest = { remoteSource.updateTask(task) },
-            onRevertDataRequest = { localSource.updateTask(prevTask) },
-            onNetworkError = {
+            onRevertOptimisticUpdate = { localSource.updateTask(prevTask) },
+            onSaveRequest = {
                 localSource.updateUnsyncTask(task.id)
                 task
-            }
+            },
+            onUpdateData = { synchronizeTasks() }
         )
     }
 
@@ -63,12 +65,13 @@ class TasksRepositoryImpl @Inject constructor(
         return networkManagerFromAction(
             onLocalRequest = {},
             onRemoteRequest = { remoteSource.removeTask(task) },
-            onRevertDataRequest = {},
-            onSyncDataIfNeeded = { localSource.removeTask(task) },
-            onNetworkError = {
+            onRevertOptimisticUpdate = {},
+            onSyncLocalData = { localSource.removeTask(task) },
+            onSaveRequest = {
                 localSource.removeUnsyncTask(task.id)
                 task
-            }
+            },
+            onUpdateData = { synchronizeTasks() }
         )
     }
 
@@ -85,7 +88,7 @@ class TasksRepositoryImpl @Inject constructor(
         )
         return networkManagerFromAction(
             onRemoteRequest = { remoteSource.synchronizeTasks(syncTasks) },
-            onSyncData = {
+            onSyncLocalData = {
                 localSource.removeUnsyncTasks()
                 localSource.refreshTasks(it)
             }

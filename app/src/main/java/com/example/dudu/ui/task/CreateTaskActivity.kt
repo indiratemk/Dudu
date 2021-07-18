@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
@@ -134,8 +135,8 @@ class CreateTaskActivity : AppCompatActivity()  {
                 is Resource.Error -> {
                     loadingDialog.dismiss()
                     setResult(RESULT_CANCELED)
-                    UIUtil.showSnackbar(binding.coordinatorContainer,
-                        resource.message ?: getString(R.string.unknown_error_message))
+                    Toast.makeText(this, resource.message, Toast.LENGTH_LONG).show()
+                    finish()
                 }
             }
         })

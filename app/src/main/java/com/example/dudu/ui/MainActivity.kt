@@ -159,9 +159,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 }
                 is Resource.Error -> {
                     showData()
-                    resource.message?.let {
-                        UIUtil.showSnackbar(binding.coordinatorContainer, it)
-                    }
+                    UIUtil.showSnackbar(binding.coordinatorContainer, resource.message)
                 }
             }
         })
@@ -190,16 +188,11 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                         is TaskEvent.FailRemoving -> {
                             loadingDialog.dismiss()
                             tasksAdapter.notifyItemChanged(tasksAdapter.tasks.indexOf(event.task))
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                event.message ?: getString(R.string.unknown_error_message)
-                            )
+                            UIUtil.showSnackbar(coordinatorContainer, event.message)
                         }
                         is TaskEvent.SuccessUpdating -> {}
-                        is TaskEvent.FailUpdating -> UIUtil.showSnackbar(
-                            coordinatorContainer,
-                            event.message ?: getString(R.string.unknown_error_message)
-                        )
+                        is TaskEvent.FailUpdating -> UIUtil.showSnackbar(coordinatorContainer,
+                            event.message)
                         is TaskEvent.SynchronizationLoading -> {
                             tvConnection.apply {
                                 setBackgroundColor(
@@ -221,10 +214,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                         is TaskEvent.FailSynchronization -> {
                             tvConnection.visibility = View.GONE
                             showData()
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                event.message ?: getString(R.string.main_synchronization_error)
-                            )
+                            UIUtil.showSnackbar(coordinatorContainer, event.message)
                         }
                     }
                 }
