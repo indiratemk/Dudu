@@ -17,7 +17,9 @@ object DatabaseModule {
     @Provides
     @AppScope
     fun provideDuduDatabase(application: Application): DuduDatabase {
-        return Room.databaseBuilder(application, DuduDatabase::class.java, DB_NAME).build()
+        return Room.databaseBuilder(application, DuduDatabase::class.java, DB_NAME)
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
