@@ -7,7 +7,10 @@ import com.example.dudu.data.local.LocalDataSource
 import com.example.dudu.data.models.Task
 import com.example.dudu.data.remote.RemoteDataSource
 import com.example.dudu.data.remote.dtos.SyncTasksDto
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class TasksRepositoryImpl @Inject constructor(
@@ -25,74 +28,88 @@ class TasksRepositoryImpl @Inject constructor(
             onAfterRequest = { localSource.getTasks(showDone) },
             onSynchronization = { tasks -> localSource.refreshTasks(tasks) },
             shouldFetchRemote
-        )
+        ).flowOn(Dispatchers.IO)
     }
 
     override fun getDoneTasksCount(): Flow<Int> {
         return localSource.getDoneTasksCount()
+            .flowOn(Dispatchers.IO)
     }
 
     override suspend fun addTask(task: Task): Resource<Task> {
-        return requestManager.executeRequest(
-            onBeforeRequest = { localSource.addTask(task) },
-            makeRequest = { remoteSource.createTask(task) },
-            onRevertOptimisticUpdate = { localSource.removeTask(task) },
-            onSaveRequest = {
-                localSource.updateUnsyncTask(task.id)
-                task
-            },
-            onSynchronization = { synchronizeTasks() }
-        )
+        return withContext(Dispatchers.IO) {
+            requestManager.executeRequest(
+                onBeforeRequest = { localSource.addTask(task) },
+                makeRequest = { remoteSource.createTask(task) },
+                onRevertOptimisticUpdate = { localSource.removeTask(task) },
+                onSaveRequest = {
+                    localSource.updateUnsyncTask(task.id)
+                    task
+                },
+                onSynchronization = { synchronizeTasks() }
+            )
+        }
     }
 
     override suspend fun updateTask(task: Task): Resource<Task> {
-        val prevTask = localSource.getTask(task.id)
+        return withContext(Dispatchers.IO) {
+            val prevTask = localSource.getTask(task.id)
 
-        return requestManager.executeRequest(
-            onBeforeRequest = { localSource.updateTask(task) },
-            makeRequest = { remoteSource.updateTask(task) },
-            onRevertOptimisticUpdate = { localSource.updateTask(prevTask) },
-            onSaveRequest = {
-                localSource.updateUnsyncTask(task.id)
-                task
-            },
-            onSynchronization = { synchronizeTasks() }
-        )
+            requestManager.executeRequest(
+                onBeforeRequest = { localSource.updateTask(task) },
+                makeRequest = { remoteSource.updateTask(task) },
+                onRevertOptimisticUpdate = { localSource.updateTask(prevTask) },
+                onSaveRequest = {
+                    localSource.updateUnsyncTask(task.id)
+                    task
+                },
+                onSynchronization = { synchronizeTasks() }
+            )
+        }
     }
 
     override suspend fun removeTask(task: Task): Resource<Task> {
-        return requestManager.executeRequest(
-            makeRequest = { remoteSource.removeTask(task) },
-            onAfterRequest = { localSource.removeTask(task) },
-            onSaveRequest = {
-                localSource.removeUnsyncTask(task.id)
-                task
-            },
-            onSynchronization = { synchronizeTasks() }
-        )
+        return withContext(Dispatchers.IO) {
+            requestManager.executeRequest(
+                makeRequest = { remoteSource.removeTask(task) },
+                onAfterRequest = { localSource.removeTask(task) },
+                onSaveRequest = {
+                    localSource.removeUnsyncTask(task.id)
+                    task
+                },
+                onSynchronization = { synchronizeTasks() }
+            )
+        }
     }
 
     override suspend fun shouldSynchronizeTasks(): Boolean {
-        return localSource.shouldSynchronizeTasks()
+        return withContext(Dispatchers.IO) {
+            localSource.shouldSynchronizeTasks()
+        }
     }
 
     override suspend fun synchronizeTasks(): Resource<List<Task>> {
-        val deletedTasksIds = localSource.getUnsyncDeletedTasksIds()
-        val updatedTasks = localSource.getUnsyncUpdatedTasks()
-        val syncTasks = SyncTasksDto(
-            deletedTasksIds,
-            updatedTasks.map { mapFromTaskToDto(it) }
-        )
-        return requestManager.executeRequest(
-            makeRequest = { remoteSource.synchronizeTasks(syncTasks) },
-            onSynchronization = {
-                localSource.removeUnsyncTasks()
-                localSource.refreshTasks(it)
-            }
-        )
+        return withContext(Dispatchers.IO) {
+            val deletedTasksIds = localSource.getUnsyncDeletedTasksIds()
+            val updatedTasks = localSource.getUnsyncUpdatedTasks()
+            val syncTasks = SyncTasksDto(
+                deletedTasksIds,
+                updatedTasks.map { mapFromTaskToDto(it) }
+            )
+
+            requestManager.executeRequest(
+                makeRequest = { remoteSource.synchronizeTasks(syncTasks) },
+                onSynchronization = {
+                    localSource.removeUnsyncTasks()
+                    localSource.refreshTasks(it)
+                }
+            )
+        }
     }
 
     override suspend fun getTasksByDeadlineCount(deadline: Long): Int {
-        return localSource.getTasksByDeadlineCount(deadline)
+        return withContext(Dispatchers.IO) {
+            localSource.getTasksByDeadlineCount(deadline)
+        }
     }
 }

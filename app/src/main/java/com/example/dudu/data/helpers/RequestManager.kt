@@ -1,7 +1,7 @@
 package com.example.dudu.data.helpers
 
-import com.example.dudu.data.errors.RequestException
 import com.example.dudu.data.errors.ErrorType
+import com.example.dudu.data.errors.RequestException
 import com.example.dudu.di.core.AppScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -26,7 +26,7 @@ class RequestManager @Inject constructor() {
             onAfterRequest()
             Resource.Loaded(result)
         } catch (exception: RequestException) {
-            return when (exception.type) {
+            when (exception.type) {
                 ErrorType.NOT_FOUND -> {
                     onSynchronization()
                     Resource.Error(exception.matchMessage())
@@ -49,7 +49,7 @@ class RequestManager @Inject constructor() {
     ): Resource<ResultType> {
         return try {
             val result = makeRequest()
-            onSynchronization(result)
+            onSynchronization(makeRequest())
             Resource.Loaded(result)
         } catch (exception: RequestException) {
             Resource.Error(exception.matchMessage())
@@ -66,17 +66,14 @@ class RequestManager @Inject constructor() {
             if (shouldFetchRemote) {
                 emit(Resource.Loading)
 
-                val resultFlow = try {
-                    onSynchronization(makeRequest())
-                    onAfterRequest().map { Resource.Loaded(it) }
+                try {
+                    val result = makeRequest()
+                    onSynchronization(result)
                 } catch (exception: RequestException) {
                     emit(Resource.Error(exception.matchMessage()))
-                    onAfterRequest().map { Resource.Loaded(it) }
                 }
-                emitAll(resultFlow)
-            } else {
-                emitAll(onAfterRequest().map { Resource.Loaded(it) })
             }
+            emitAll(onAfterRequest().map { Resource.Loaded(it) })
         }
     }
 }
