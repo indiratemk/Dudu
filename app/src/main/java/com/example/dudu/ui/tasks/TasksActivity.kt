@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.afollestad.materialdialogs.MaterialDialog
@@ -20,7 +19,6 @@ import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.ui.task.CreateTaskActivity
 import com.example.dudu.ui.tasks.*
 import com.example.dudu.util.*
-import kotlinx.coroutines.flow.collect
 import java.util.*
 import javax.inject.Inject
 
@@ -31,8 +29,8 @@ class TasksActivity : AppCompatActivity(), TaskClickListener {
 
     private lateinit var binding: MainActivityBinding
     private lateinit var tasksViewModel: TasksViewModel
-    private val tasksAdapter = TaskAdapter(this)
     private lateinit var loadingDialog: MaterialDialog
+    private val tasksAdapter = TaskAdapter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,7 +132,6 @@ class TasksActivity : AppCompatActivity(), TaskClickListener {
 
     private fun subscribeObservers() {
         val networkConnection = NetworkConnection(this)
-
         networkConnection.observe(this, { isConnected ->
             if (isConnected) {
                 tasksViewModel.synchronizeTasks()
@@ -177,52 +174,57 @@ class TasksActivity : AppCompatActivity(), TaskClickListener {
             binding.headerLayout.ibVisibility.isSelected = it
         })
 
-        lifecycleScope.launchWhenStarted {
-            tasksViewModel.taskEvent.collect { event ->
-                with(binding) {
-                    when (event) {
-                        is TaskEvent.SuccessRemoving -> {
-                            loadingDialog.dismiss()
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                getString(R.string.main_task_removed_message)
-                            )
-                        }
-                        is TaskEvent.FailRemoving -> {
-                            loadingDialog.dismiss()
-                            tasksAdapter.notifyItemChanged(tasksAdapter.tasks.indexOf(event.task))
-                            UIUtil.showSnackbar(coordinatorContainer, event.message)
-                        }
-                        is TaskEvent.SuccessUpdating -> {}
-                        is TaskEvent.FailUpdating -> UIUtil.showSnackbar(coordinatorContainer,
-                            event.message)
-                        is TaskEvent.SynchronizationLoading -> {
-                            tvConnection.apply {
-                                setBackgroundColor(
-                                    ContextCompat.getColor(this@TasksActivity, R.color.blue)
-                                )
-                                text = getString(R.string.main_synchronization)
-                                visibility = View.VISIBLE
-                            }
-                            showLoading()
-                        }
-                        is TaskEvent.SuccessSynchronization -> {
-                            tvConnection.visibility = View.GONE
-                            showData()
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                getString(R.string.main_data_synchronized)
-                            )
-                        }
-                        is TaskEvent.FailSynchronization -> {
-                            tvConnection.visibility = View.GONE
-                            showData()
-                            UIUtil.showSnackbar(coordinatorContainer, event.message)
-                        }
-                    }
+        tasksViewModel.updateTask.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {}
+                is Resource.Loaded -> {}
+                is Resource.Error ->
+                    UIUtil.showSnackbar(binding.coordinatorContainer, resource.message)
+            }
+        })
+
+        tasksViewModel.removeTask.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {}
+                is Resource.Loaded -> {
+                    loadingDialog.dismiss()
+                    UIUtil.showSnackbar(
+                        binding.coordinatorContainer,
+                        getString(R.string.main_task_removed_message)
+                    )
+                }
+                is Resource.Error -> {
+                    loadingDialog.dismiss()
+                    UIUtil.showSnackbar(binding.coordinatorContainer, resource.message)
                 }
             }
-        }
+        })
+
+        tasksViewModel.syncTasks.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    binding.tvConnection.apply {
+                        setBackgroundColor(
+                            ContextCompat.getColor(this@TasksActivity, R.color.blue)
+                        )
+                        text = getString(R.string.main_synchronization)
+                        visibility = View.VISIBLE
+                    }
+                    showLoading()
+                }
+                else -> {
+                    binding.tvConnection.visibility = View.GONE
+                    showData()
+                    UIUtil.showSnackbar(
+                        binding.coordinatorContainer,
+                        if (resource is Resource.Error)
+                            resource.message
+                        else
+                            getString(R.string.main_data_synchronized)
+                    )
+                }
+            }
+        })
     }
 
     private fun showLoading() {
