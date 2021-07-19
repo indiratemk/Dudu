@@ -1,4 +1,4 @@
-package com.example.dudu.ui
+package com.example.dudu.ui.tasks
 
 import android.content.Intent
 import android.content.res.Configuration
@@ -24,10 +24,10 @@ import kotlinx.coroutines.flow.collect
 import java.util.*
 import javax.inject.Inject
 
-class MainActivity : AppCompatActivity(), TaskClickListener {
+class TasksActivity : AppCompatActivity(), TaskClickListener {
 
     @Inject
-    lateinit var viewModelFactory: ViewModelFactory
+    lateinit var viewModelProvider: ViewModelProviderFactory
 
     private lateinit var binding: MainActivityBinding
     private lateinit var tasksViewModel: TasksViewModel
@@ -39,9 +39,12 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        DuduApp.appComponent.inject(this)
+        (applicationContext as DuduApp).appComponent
+            .tasksComponent()
+            .inject(this)
+
         tasksViewModel =
-            ViewModelProvider(this, viewModelFactory)[TasksViewModel::class.java]
+            ViewModelProvider(this, viewModelProvider)[TasksViewModel::class.java]
 
         initUI()
         subscribeObservers()
@@ -51,7 +54,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         with(binding) {
             fabCreateTask.setOnClickListener {
                 CreateTaskActivity.startActivityForResult(
-                    this@MainActivity,
+                    this@TasksActivity,
                     Constants.REQUEST_CREATE_TASK
                 )
             }
@@ -88,15 +91,15 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
     private fun initRV() {
         binding.rvTasks.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
+            layoutManager = LinearLayoutManager(this@TasksActivity)
             adapter = tasksAdapter
             setHasFixedSize(true)
         }
         val swipeHelper = object : SwipeHelper() {
             override fun createLeftButton(): ControlButton {
                 return ControlButton(
-                    ContextCompat.getColor(this@MainActivity, R.color.green),
-                    ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
+                    ContextCompat.getColor(this@TasksActivity, R.color.green),
+                    ContextCompat.getDrawable(this@TasksActivity, R.drawable.ic_check)
                 ) { position ->
                     val task = tasksAdapter.tasks[position]
                     tasksViewModel.onTaskCheckedChanged(task, !task.isDone)
@@ -108,11 +111,11 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
             override fun createRightButton(): ControlButton {
                 return ControlButton(
-                    ContextCompat.getColor(this@MainActivity, R.color.red),
-                    ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
+                    ContextCompat.getColor(this@TasksActivity, R.color.red),
+                    ContextCompat.getDrawable(this@TasksActivity, R.drawable.ic_remove)
                 ) { position ->
                     UIUtil.createDialogWithAction(
-                        this@MainActivity,
+                        this@TasksActivity,
                         R.string.task_removing_message,
                         onCancel = { tasksAdapter.notifyItemChanged(position) },
                         onPositive = {
@@ -139,7 +142,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             } else {
                 binding.tvConnection.apply {
                     setBackgroundColor(
-                        ContextCompat.getColor(this@MainActivity, R.color.label_tertiary)
+                        ContextCompat.getColor(this@TasksActivity, R.color.label_tertiary)
                     )
                     text = getString(R.string.main_offline_mode)
                     visibility = View.VISIBLE
@@ -196,7 +199,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                         is TaskEvent.SynchronizationLoading -> {
                             tvConnection.apply {
                                 setBackgroundColor(
-                                    ContextCompat.getColor(this@MainActivity, R.color.blue)
+                                    ContextCompat.getColor(this@TasksActivity, R.color.blue)
                                 )
                                 text = getString(R.string.main_synchronization)
                                 visibility = View.VISIBLE

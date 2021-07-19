@@ -1,8 +1,7 @@
-package com.example.dudu.di.modules
+package com.example.dudu.di.core
 
 import com.example.dudu.data.TasksRepository
 import com.example.dudu.data.TasksRepositoryImpl
-import com.example.dudu.di.scopes.AppScope
 import dagger.Binds
 import dagger.Module
 

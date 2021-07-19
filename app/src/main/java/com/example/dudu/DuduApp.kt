@@ -19,6 +19,8 @@ import javax.inject.Inject
 
 class DuduApp : Application(), Configuration.Provider {
 
+    lateinit var appComponent: AppComponent
+        private set
     @Inject
     lateinit var workerFactory: DuduDelegatingWorkerFactory
     @Inject
@@ -70,9 +72,5 @@ class DuduApp : Application(), Configuration.Provider {
                 .build()
         WorkManager.getInstance(this)
             .enqueue(synchronizationWorkRequest)
-    }
-
-    companion object {
-        lateinit var appComponent: AppComponent
     }
 }

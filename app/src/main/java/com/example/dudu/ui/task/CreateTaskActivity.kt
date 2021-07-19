@@ -26,7 +26,7 @@ import javax.inject.Inject
 class CreateTaskActivity : AppCompatActivity()  {
 
     @Inject
-    lateinit var viewModelFactory: ViewModelFactory
+    lateinit var viewModelProvider: ViewModelProviderFactory
 
     private lateinit var binding: CreateTaskActivityBinding
     private lateinit var createTaskViewModel: CreateTaskViewModel
@@ -50,9 +50,12 @@ class CreateTaskActivity : AppCompatActivity()  {
         binding = CreateTaskActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        DuduApp.appComponent.inject(this)
+        (applicationContext as DuduApp).appComponent
+            .createTaskComponent()
+            .inject(this)
+
         createTaskViewModel =
-            ViewModelProvider(this, viewModelFactory)[CreateTaskViewModel::class.java]
+            ViewModelProvider(this, viewModelProvider)[CreateTaskViewModel::class.java]
 
         val task = intent.getParcelableExtra<Task>(Constants.EXTRA_TASK)
         isTaskCreation = task == null

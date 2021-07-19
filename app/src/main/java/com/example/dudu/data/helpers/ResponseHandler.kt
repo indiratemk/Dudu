@@ -2,7 +2,7 @@ package com.example.dudu.data.helpers
 
 import com.example.dudu.data.errors.RequestException
 import com.example.dudu.data.errors.ErrorType
-import com.example.dudu.di.scopes.AppScope
+import com.example.dudu.di.core.AppScope
 import retrofit2.Response
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException

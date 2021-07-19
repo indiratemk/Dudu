@@ -14,7 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.dudu.R
 import com.example.dudu.data.TasksRepository
-import com.example.dudu.ui.MainActivity
+import com.example.dudu.ui.tasks.TasksActivity
 import com.example.dudu.util.DateFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -54,7 +54,7 @@ class TasksReminderWorker(
             notificationManager.createNotificationChannel(channel)
         }
 
-        val intent = Intent(appContext, MainActivity::class.java).apply {
+        val intent = Intent(appContext, TasksActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 

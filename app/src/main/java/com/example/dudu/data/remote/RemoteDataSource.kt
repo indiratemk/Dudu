@@ -5,7 +5,7 @@ import com.example.dudu.data.helpers.mapFromDtoToTask
 import com.example.dudu.data.helpers.mapFromTaskToDto
 import com.example.dudu.data.models.Task
 import com.example.dudu.data.remote.dtos.SyncTasksDto
-import com.example.dudu.di.scopes.AppScope
+import com.example.dudu.di.core.AppScope
 import javax.inject.Inject
 
 @AppScope

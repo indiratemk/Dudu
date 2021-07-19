@@ -2,7 +2,7 @@ package com.example.dudu.data.local
 
 import android.app.Application
 import android.content.Context
-import com.example.dudu.di.scopes.AppScope
+import com.example.dudu.di.core.AppScope
 import com.example.dudu.util.Constants
 import javax.inject.Inject
 

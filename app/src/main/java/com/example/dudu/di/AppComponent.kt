@@ -2,13 +2,13 @@ package com.example.dudu.di
 
 import android.app.Application
 import com.example.dudu.DuduApp
-import com.example.dudu.di.modules.DatabaseModule
-import com.example.dudu.di.modules.NetworkModule
-import com.example.dudu.di.modules.RepositoryModule
-import com.example.dudu.di.modules.ViewModelModule
-import com.example.dudu.di.scopes.AppScope
-import com.example.dudu.ui.MainActivity
-import com.example.dudu.ui.task.CreateTaskActivity
+import com.example.dudu.di.core.AppModule
+import com.example.dudu.di.core.DatabaseModule
+import com.example.dudu.di.core.NetworkModule
+import com.example.dudu.di.core.RepositoryModule
+import com.example.dudu.di.core.AppScope
+import com.example.dudu.di.task.CreateTaskComponent
+import com.example.dudu.di.tasks.TasksComponent
 import dagger.BindsInstance
 import dagger.Component
 
@@ -16,7 +16,7 @@ import dagger.Component
 @Component(modules = [
     DatabaseModule::class,
     NetworkModule::class,
-    ViewModelModule::class,
+    AppModule::class,
     RepositoryModule::class
 ])
 interface AppComponent {
@@ -28,9 +28,9 @@ interface AppComponent {
         ): AppComponent
     }
 
+    fun createTaskComponent(): CreateTaskComponent
+
+    fun tasksComponent(): TasksComponent
+
     fun inject(application: DuduApp)
-
-    fun inject(activity: MainActivity)
-
-    fun inject(activity: CreateTaskActivity)
 }
