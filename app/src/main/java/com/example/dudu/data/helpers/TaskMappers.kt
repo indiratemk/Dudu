@@ -35,16 +35,6 @@ fun mapFromTaskToEntity(data: Task): TaskEntity {
     )
 }
 
-fun mapFromDtoToEntity(data: TaskDto): TaskEntity {
-    return TaskEntity(
-        id = data.id,
-        description = data.text,
-        deadline = data.deadline,
-        priority = data.importance,
-        isDone = data.isDone
-    )
-}
-
 fun mapFromTaskToDto(data: Task): TaskDto {
     return TaskDto(
         id = data.id,

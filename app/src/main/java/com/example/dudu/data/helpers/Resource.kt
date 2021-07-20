@@ -6,5 +6,5 @@ sealed class Resource<out T: Any> {
 
     data class Loaded<out T: Any>(val data: T) : Resource<T>()
 
-    data class Error(val message: String?) : Resource<Nothing>()
+    data class Error(val message: String) : Resource<Nothing>()
 }

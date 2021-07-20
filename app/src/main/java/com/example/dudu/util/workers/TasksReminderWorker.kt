@@ -14,8 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.dudu.R
 import com.example.dudu.data.TasksRepository
-import com.example.dudu.ui.MainActivity
-import com.example.dudu.util.Constants
+import com.example.dudu.ui.tasks.TasksActivity
 import com.example.dudu.util.DateFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -55,7 +54,7 @@ class TasksReminderWorker(
             notificationManager.createNotificationChannel(channel)
         }
 
-        val intent = Intent(appContext, MainActivity::class.java).apply {
+        val intent = Intent(appContext, TasksActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
@@ -82,13 +81,15 @@ class TasksReminderWorker(
     private fun scheduleWork() {
         val reminderWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
             .setInitialDelay(getWorkRepetitionTimeInMillis(), TimeUnit.MILLISECONDS)
-            .addTag(Constants.REMINDER_WORK_TAG)
+            .addTag(REMINDER_WORK_TAG)
             .build()
         WorkManager.getInstance(appContext)
             .enqueue(reminderWorkRequest)
     }
 
     companion object {
+        const val REMINDER_WORK_TAG = "REMINDER_WORK_TAG"
+
         fun getWorkRepetitionTimeInMillis(): Long {
             val currentDate = Calendar.getInstance()
             val notificationDate = Calendar.getInstance()
@@ -98,7 +99,7 @@ class TasksReminderWorker(
             if (notificationDate.before(currentDate)) {
                 notificationDate.add(Calendar.HOUR_OF_DAY, 24)
             }
-            return notificationDate.timeInMillis.minus(currentDate.timeInMillis)
+            return notificationDate.timeInMillis - currentDate.timeInMillis
         }
     }
 }

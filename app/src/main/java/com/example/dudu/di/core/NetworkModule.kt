@@ -1,8 +1,7 @@
-package com.example.dudu.di.modules
+package com.example.dudu.di.core
 
 import com.example.dudu.data.remote.TasksApi
 import com.example.dudu.data.remote.interceptors.RequestInterceptor
-import com.example.dudu.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient

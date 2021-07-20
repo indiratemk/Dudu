@@ -7,7 +7,7 @@ import com.example.dudu.data.local.daos.UnsyncTaskDao
 import com.example.dudu.data.local.entities.DeletedTaskEntity
 import com.example.dudu.data.local.entities.UpdatedTaskEntity
 import com.example.dudu.data.models.Task
-import com.example.dudu.di.scopes.AppScope
+import com.example.dudu.di.core.AppScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow

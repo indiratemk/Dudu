@@ -1,14 +1,16 @@
 package com.example.dudu.ui.tasks
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.dudu.data.TasksRepository
 import com.example.dudu.data.helpers.Resource
 import com.example.dudu.data.models.Task
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,8 +18,17 @@ class TasksViewModel @Inject constructor(
     private val repository: TasksRepository
 ) : ViewModel() {
 
-    private val taskEventChannel = Channel<TaskEvent>()
-    val taskEvent = taskEventChannel.receiveAsFlow()
+    private val _updateTask = MutableLiveData<Resource<Task>>()
+    val updateTask: LiveData<Resource<Task>>
+        get() = _updateTask
+
+    private val _removeTask = MutableLiveData<Resource<Task>>()
+    val removeTask: LiveData<Resource<Task>>
+        get() = _removeTask
+
+    private val _syncTasks = MutableLiveData<Resource<List<Task>>>()
+    val syncTasks: LiveData<Resource<List<Task>>>
+        get() = _syncTasks
 
     private val _showDone = MutableStateFlow(false)
     val showDone: LiveData<Boolean>
@@ -43,35 +54,21 @@ class TasksViewModel @Inject constructor(
 
     fun onTaskCheckedChanged(task: Task, isChecked: Boolean) {
         viewModelScope.launch {
-            when (val resource = repository.updateTask(task.copy(isDone = isChecked))) {
-                is Resource.Loaded -> taskEventChannel.send(TaskEvent.SuccessUpdating)
-                is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.FailUpdating(resource.message))
-            }
+            _updateTask.value = repository.updateTask(task.copy(isDone = isChecked))
         }
     }
 
     fun removeTask(task: Task) {
         viewModelScope.launch {
-            when (val resource = repository.removeTask(task)) {
-                is Resource.Loaded ->
-                    taskEventChannel.send(TaskEvent.SuccessRemoving)
-                is Resource.Error ->
-                    taskEventChannel.send(TaskEvent.FailRemoving(resource.message, task))
-            }
+            _removeTask.value = repository.removeTask(task)
         }
     }
 
     fun synchronizeTasks() {
         viewModelScope.launch {
             if (repository.shouldSynchronizeTasks()) {
-                taskEventChannel.send(TaskEvent.SynchronizationLoading)
-                when (val resource = repository.synchronizeTasks()) {
-                    is Resource.Loaded ->
-                        taskEventChannel.send(TaskEvent.SuccessSynchronization)
-                    is Resource.Error ->
-                        taskEventChannel.send(TaskEvent.FailSynchronization(resource.message))
-                }
+                _syncTasks.value = Resource.Loading
+                _syncTasks.value = repository.synchronizeTasks()
             }
         }
     }

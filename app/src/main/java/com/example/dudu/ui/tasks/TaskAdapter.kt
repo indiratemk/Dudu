@@ -30,12 +30,7 @@ class TaskAdapter(
             oldItems = this.tasks,
             newItems = tasks,
             areTheSame = { oldItem, newItem -> oldItem.id == newItem.id },
-            areContentsTheSame = { oldItem, newItem ->
-                oldItem.isDone == newItem.isDone &&
-                        oldItem.description == newItem.description &&
-                        oldItem.deadline == newItem.deadline &&
-                        oldItem.priority == newItem.priority
-            }
+            areContentsTheSame = { oldItem, newItem -> oldItem == newItem }
         )
 
         this.tasks = tasks

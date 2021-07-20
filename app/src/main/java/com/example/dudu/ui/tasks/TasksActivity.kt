@@ -1,4 +1,4 @@
-package com.example.dudu.ui
+package com.example.dudu.ui.tasks
 
 import android.content.Intent
 import android.content.res.Configuration
@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.afollestad.materialdialogs.MaterialDialog
@@ -20,28 +19,30 @@ import com.example.dudu.databinding.MainActivityBinding
 import com.example.dudu.ui.task.CreateTaskActivity
 import com.example.dudu.ui.tasks.*
 import com.example.dudu.util.*
-import kotlinx.coroutines.flow.collect
 import java.util.*
 import javax.inject.Inject
 
-class MainActivity : AppCompatActivity(), TaskClickListener {
+class TasksActivity : AppCompatActivity(), TaskClickListener {
 
     @Inject
-    lateinit var viewModelFactory: ViewModelFactory
+    lateinit var viewModelProvider: ViewModelProviderFactory
 
     private lateinit var binding: MainActivityBinding
     private lateinit var tasksViewModel: TasksViewModel
-    private val tasksAdapter = TaskAdapter(this)
     private lateinit var loadingDialog: MaterialDialog
+    private val tasksAdapter = TaskAdapter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        DuduApp.appComponent.inject(this)
+        (applicationContext as DuduApp).appComponent
+            .tasksComponent()
+            .inject(this)
+
         tasksViewModel =
-            ViewModelProvider(this, viewModelFactory)[TasksViewModel::class.java]
+            ViewModelProvider(this, viewModelProvider)[TasksViewModel::class.java]
 
         initUI()
         subscribeObservers()
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
         with(binding) {
             fabCreateTask.setOnClickListener {
                 CreateTaskActivity.startActivityForResult(
-                    this@MainActivity,
+                    this@TasksActivity,
                     Constants.REQUEST_CREATE_TASK
                 )
             }
@@ -88,15 +89,15 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
     private fun initRV() {
         binding.rvTasks.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
+            layoutManager = LinearLayoutManager(this@TasksActivity)
             adapter = tasksAdapter
             setHasFixedSize(true)
         }
         val swipeHelper = object : SwipeHelper() {
             override fun createLeftButton(): ControlButton {
                 return ControlButton(
-                    ContextCompat.getColor(this@MainActivity, R.color.green),
-                    ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_check)
+                    ContextCompat.getColor(this@TasksActivity, R.color.green),
+                    ContextCompat.getDrawable(this@TasksActivity, R.drawable.ic_check)
                 ) { position ->
                     val task = tasksAdapter.tasks[position]
                     tasksViewModel.onTaskCheckedChanged(task, !task.isDone)
@@ -108,11 +109,11 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
             override fun createRightButton(): ControlButton {
                 return ControlButton(
-                    ContextCompat.getColor(this@MainActivity, R.color.red),
-                    ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_remove)
+                    ContextCompat.getColor(this@TasksActivity, R.color.red),
+                    ContextCompat.getDrawable(this@TasksActivity, R.drawable.ic_remove)
                 ) { position ->
                     UIUtil.createDialogWithAction(
-                        this@MainActivity,
+                        this@TasksActivity,
                         R.string.task_removing_message,
                         onCancel = { tasksAdapter.notifyItemChanged(position) },
                         onPositive = {
@@ -131,7 +132,6 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
 
     private fun subscribeObservers() {
         val networkConnection = NetworkConnection(this)
-
         networkConnection.observe(this, { isConnected ->
             if (isConnected) {
                 tasksViewModel.synchronizeTasks()
@@ -139,7 +139,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             } else {
                 binding.tvConnection.apply {
                     setBackgroundColor(
-                        ContextCompat.getColor(this@MainActivity, R.color.label_tertiary)
+                        ContextCompat.getColor(this@TasksActivity, R.color.label_tertiary)
                     )
                     text = getString(R.string.main_offline_mode)
                     visibility = View.VISIBLE
@@ -159,9 +159,7 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
                 }
                 is Resource.Error -> {
                     showData()
-                    resource.message?.let {
-                        UIUtil.showSnackbar(binding.coordinatorContainer, it)
-                    }
+                    UIUtil.showSnackbar(binding.coordinatorContainer, resource.message)
                 }
             }
         })
@@ -176,60 +174,57 @@ class MainActivity : AppCompatActivity(), TaskClickListener {
             binding.headerLayout.ibVisibility.isSelected = it
         })
 
-        lifecycleScope.launchWhenStarted {
-            tasksViewModel.taskEvent.collect { event ->
-                with(binding) {
-                    when (event) {
-                        is TaskEvent.SuccessRemoving -> {
-                            loadingDialog.dismiss()
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                getString(R.string.main_task_removed_message)
-                            )
-                        }
-                        is TaskEvent.FailRemoving -> {
-                            loadingDialog.dismiss()
-                            tasksAdapter.notifyItemChanged(tasksAdapter.tasks.indexOf(event.task))
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                event.message ?: getString(R.string.unknown_error_message)
-                            )
-                        }
-                        is TaskEvent.SuccessUpdating -> {}
-                        is TaskEvent.FailUpdating -> UIUtil.showSnackbar(
-                            coordinatorContainer,
-                            event.message ?: getString(R.string.unknown_error_message)
-                        )
-                        is TaskEvent.SynchronizationLoading -> {
-                            tvConnection.apply {
-                                setBackgroundColor(
-                                    ContextCompat.getColor(this@MainActivity, R.color.blue)
-                                )
-                                text = getString(R.string.main_synchronization)
-                                visibility = View.VISIBLE
-                            }
-                            showLoading()
-                        }
-                        is TaskEvent.SuccessSynchronization -> {
-                            tvConnection.visibility = View.GONE
-                            showData()
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                getString(R.string.main_data_synchronized)
-                            )
-                        }
-                        is TaskEvent.FailSynchronization -> {
-                            tvConnection.visibility = View.GONE
-                            showData()
-                            UIUtil.showSnackbar(
-                                coordinatorContainer,
-                                event.message ?: getString(R.string.main_synchronization_error)
-                            )
-                        }
-                    }
+        tasksViewModel.updateTask.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {}
+                is Resource.Loaded -> {}
+                is Resource.Error ->
+                    UIUtil.showSnackbar(binding.coordinatorContainer, resource.message)
+            }
+        })
+
+        tasksViewModel.removeTask.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {}
+                is Resource.Loaded -> {
+                    loadingDialog.dismiss()
+                    UIUtil.showSnackbar(
+                        binding.coordinatorContainer,
+                        getString(R.string.main_task_removed_message)
+                    )
+                }
+                is Resource.Error -> {
+                    loadingDialog.dismiss()
+                    UIUtil.showSnackbar(binding.coordinatorContainer, resource.message)
                 }
             }
-        }
+        })
+
+        tasksViewModel.syncTasks.observe(this, { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    binding.tvConnection.apply {
+                        setBackgroundColor(
+                            ContextCompat.getColor(this@TasksActivity, R.color.blue)
+                        )
+                        text = getString(R.string.main_synchronization)
+                        visibility = View.VISIBLE
+                    }
+                    showLoading()
+                }
+                else -> {
+                    binding.tvConnection.visibility = View.GONE
+                    showData()
+                    UIUtil.showSnackbar(
+                        binding.coordinatorContainer,
+                        if (resource is Resource.Error)
+                            resource.message
+                        else
+                            getString(R.string.main_data_synchronized)
+                    )
+                }
+            }
+        })
     }
 
     private fun showLoading() {
