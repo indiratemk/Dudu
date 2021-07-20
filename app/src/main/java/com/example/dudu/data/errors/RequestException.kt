@@ -4,7 +4,7 @@ class RequestException(
     val type: ErrorType
 ) : Exception() {
 
-    // Пока нет идей как взять текста из strings без ссылки на context =(
+    // Пока нет идей как взять текста из strings без ссылки на context
     fun matchMessage(): String {
         return when(type) {
             ErrorType.NOT_FOUND -> "Данные не актуальны, сейчас произойдет синхронизация"
