@@ -1,4 +1,4 @@
-package com.example.dudu.util.workers
+package com.example.dudu.data.workers.reminder
 
 import android.content.Context
 import androidx.work.ListenableWorker
