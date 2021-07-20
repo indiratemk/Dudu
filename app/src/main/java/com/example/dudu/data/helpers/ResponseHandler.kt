@@ -4,6 +4,7 @@ import com.example.dudu.data.errors.RequestException
 import com.example.dudu.data.errors.ErrorType
 import com.example.dudu.di.core.AppScope
 import retrofit2.Response
+import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
@@ -30,6 +31,8 @@ class ResponseHandler @Inject constructor() {
             throw RequestException(ErrorType.TIMEOUT)
         } catch (exception: UnknownHostException) {
             throw RequestException(ErrorType.CONNECTION)
+        } catch (exception: IOException) {
+            throw RequestException(ErrorType.UNKNOWN)
         }
     }
 }

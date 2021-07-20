@@ -90,7 +90,7 @@ class CreateTaskActivity : AppCompatActivity()  {
             etDescription.doAfterTextChanged {
                 tvDescriptionError.visibility = View.GONE
             }
-            btnRemove.setOnClickListener {
+            btnRemove.setOnClickListenerWithDebounce {
                 UIUtil.createDialogWithAction(
                     this@CreateTaskActivity,
                     R.string.task_removing_message,
@@ -102,8 +102,10 @@ class CreateTaskActivity : AppCompatActivity()  {
                     onNegative = {}
                 ).show()
             }
-            deadlineLayout.clDeadline.setOnClickListener {
-                datePicker.show(supportFragmentManager, "datePicker")
+            deadlineLayout.clDeadline.setOnClickListenerWithDebounce {
+                if (!datePicker.isAdded) {
+                    datePicker.show(supportFragmentManager, "datePicker")
+                }
             }
             deadlineLayout.switchDeadline.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
