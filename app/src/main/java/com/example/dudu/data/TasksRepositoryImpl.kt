@@ -13,6 +13,11 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Репозиторий решает откуда брать данные из локального или удаленного источника и как
+ * синхронизировать.
+ */
+
 class TasksRepositoryImpl @Inject constructor(
     private val localSource: LocalDataSource,
     private val remoteSource: RemoteDataSource,

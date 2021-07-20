@@ -8,6 +8,11 @@ import com.example.dudu.data.remote.dtos.SyncTasksDto
 import com.example.dudu.di.core.AppScope
 import javax.inject.Inject
 
+/**
+ * Удаленный источник заботится о том как предоставить удаленные данные, которые могут
+ * прийти с разных мест (разные апи или вообще другой удаленный ресурс)
+ */
+
 @AppScope
 class RemoteDataSource @Inject constructor(
     private val tasksApi: TasksApi,

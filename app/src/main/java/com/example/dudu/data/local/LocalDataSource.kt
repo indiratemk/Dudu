@@ -14,6 +14,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+/**
+ * Локальный источник заботится о том как придоставить локальные данные, они могут быть из мест
+ * (базы данных, shared preferences, диска и т.д.)
+ */
+
 @AppScope
 class LocalDataSource @Inject constructor(
     private val taskDao: TaskDao,

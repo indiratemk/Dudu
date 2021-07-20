@@ -9,6 +9,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+/**
+ * Вспомогательный класс для запросов. В нем прописана логика в каких случая требуется
+ * синхронизация данных/сохранение проваленного запроса. Так как используется
+ * optimistic update => когда запрос провалился необходимо возвращать все назад,
+ * эта логика также прописана здесь.
+ */
+
 @AppScope
 class RequestManager @Inject constructor() {
 
