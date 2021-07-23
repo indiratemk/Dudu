@@ -5,11 +5,9 @@ import com.example.dudu.data.errors.RequestException
 import com.example.dudu.data.helpers.RequestManager
 import com.example.dudu.data.helpers.Resource
 import com.example.dudu.data.models.Task
-import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
-import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -21,21 +19,20 @@ import org.junit.Test
 @ExperimentalCoroutinesApi
 class RequestManagerTest {
 
-    @MockK
-    lateinit var onBeforeRequest: suspend () -> Unit
-    lateinit var onAfterRequest: suspend () -> Unit
-    lateinit var onRevertOptimistic: suspend () -> Unit
-    lateinit var onSaveRequest: suspend () -> Task
-    lateinit var onSynchronization: suspend () -> Unit
+    lateinit var onMockBeforeRequest: suspend () -> Unit
+    lateinit var onMockAfterRequest: suspend () -> Unit
+    lateinit var onMockRevertOptimistic: suspend () -> Unit
+    lateinit var onMockSaveRequest: suspend () -> Task
+    lateinit var onMockSynchronization: suspend () -> Unit
     lateinit var requestManager: RequestManager
 
     @Before
     fun setUp() {
-        onBeforeRequest = mockk(relaxed = true)
-        onAfterRequest = mockk(relaxed = true)
-        onRevertOptimistic = mockk(relaxed = true)
-        onSaveRequest = mockk(relaxed = true)
-        onSynchronization = mockk(relaxed = true)
+        onMockBeforeRequest = mockk(relaxed = true)
+        onMockAfterRequest = mockk(relaxed = true)
+        onMockRevertOptimistic = mockk(relaxed = true)
+        onMockSaveRequest = mockk(relaxed = true)
+        onMockSynchronization = mockk(relaxed = true)
         requestManager = RequestManager()
     }
 
@@ -46,22 +43,22 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { task }
 
             requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             coVerifyOrder {
-                onBeforeRequest()
+                onMockBeforeRequest()
                 makeRequest()
-                onAfterRequest()
+                onMockAfterRequest()
             }
-            coVerify(exactly = 0) { onRevertOptimistic() }
-            coVerify(exactly = 0) { onSynchronization() }
-            coVerify(exactly = 0) { onSaveRequest() }
+            coVerify(exactly = 0) { onMockRevertOptimistic() }
+            coVerify(exactly = 0) { onMockSynchronization() }
+            coVerify(exactly = 0) { onMockSaveRequest() }
         }
     }
 
@@ -72,21 +69,21 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             coVerifyOrder {
-                onBeforeRequest()
-                onSynchronization()
+                onMockBeforeRequest()
+                onMockSynchronization()
             }
-            coVerify(exactly = 0) { onAfterRequest() }
-            coVerify(exactly = 0) { onRevertOptimistic() }
-            coVerify(exactly = 0) { onSaveRequest() }
+            coVerify(exactly = 0) { onMockAfterRequest() }
+            coVerify(exactly = 0) { onMockRevertOptimistic() }
+            coVerify(exactly = 0) { onMockSaveRequest() }
         }
     }
 
@@ -97,21 +94,21 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             coVerifyOrder {
-                onBeforeRequest()
-                onRevertOptimistic()
+                onMockBeforeRequest()
+                onMockRevertOptimistic()
             }
-            coVerify(exactly = 0) { onAfterRequest() }
-            coVerify(exactly = 0) { onSynchronization() }
-            coVerify(exactly = 0) { onSaveRequest() }
+            coVerify(exactly = 0) { onMockAfterRequest() }
+            coVerify(exactly = 0) { onMockSynchronization() }
+            coVerify(exactly = 0) { onMockSaveRequest() }
         }
     }
 
@@ -122,21 +119,21 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             coVerifyOrder {
-                onBeforeRequest()
-                onRevertOptimistic()
+                onMockBeforeRequest()
+                onMockRevertOptimistic()
             }
-            coVerify(exactly = 0) { onAfterRequest() }
-            coVerify(exactly = 0) { onSynchronization() }
-            coVerify(exactly = 0) { onSaveRequest() }
+            coVerify(exactly = 0) { onMockAfterRequest() }
+            coVerify(exactly = 0) { onMockSynchronization() }
+            coVerify(exactly = 0) { onMockSaveRequest() }
         }
     }
 
@@ -147,21 +144,21 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             coVerifyOrder {
-                onBeforeRequest()
-                onAfterRequest()
-                onSaveRequest()
+                onMockBeforeRequest()
+                onMockAfterRequest()
+                onMockSaveRequest()
             }
-            coVerify(exactly = 0) { onRevertOptimistic() }
-            coVerify(exactly = 0) { onSynchronization() }
+            coVerify(exactly = 0) { onMockRevertOptimistic() }
+            coVerify(exactly = 0) { onMockSynchronization() }
         }
     }
 
@@ -172,21 +169,21 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             coVerifyOrder {
-                onBeforeRequest()
-                onAfterRequest()
-                onSaveRequest()
+                onMockBeforeRequest()
+                onMockAfterRequest()
+                onMockSaveRequest()
             }
-            coVerify(exactly = 0) { onRevertOptimistic() }
-            coVerify(exactly = 0) { onSynchronization() }
+            coVerify(exactly = 0) { onMockRevertOptimistic() }
+            coVerify(exactly = 0) { onMockSynchronization() }
         }
     }
 
@@ -197,12 +194,12 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { task }
 
             val result = requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             assertThat(result, `is`(Resource.Loaded(task)))
@@ -216,12 +213,12 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             val result = requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             assertThat(result, `is`(Resource.Error(exception.matchMessage())))
@@ -235,12 +232,12 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             val result = requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             assertThat(result, `is`(Resource.Error(exception.matchMessage())))
@@ -254,12 +251,12 @@ class RequestManagerTest {
             val makeRequest: suspend () -> Task = { throw exception }
 
             val result = requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             assertThat(result, `is`(Resource.Error(exception.matchMessage())))
@@ -272,15 +269,15 @@ class RequestManagerTest {
             val exception = RequestException(ErrorType.SERVER)
             val makeRequest: suspend () -> Task = { throw exception }
             val task = Task("test", "test", 0L, "basic", false)
-            coEvery { onSaveRequest() }.returns(task)
+            coEvery { onMockSaveRequest() }.returns(task)
 
             val result = requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             assertThat(result, `is`(Resource.Loaded(task)))
@@ -293,15 +290,15 @@ class RequestManagerTest {
             val exception = RequestException(ErrorType.CONNECTION)
             val makeRequest: suspend () -> Task = { throw exception }
             val task = Task("test", "test", 0L, "basic", false)
-            coEvery { onSaveRequest() }.returns(task)
+            coEvery { onMockSaveRequest() }.returns(task)
 
             val result = requestManager.executeRequest(
-                onBeforeRequest = onBeforeRequest,
+                onBeforeRequest = onMockBeforeRequest,
                 makeRequest = makeRequest,
-                onAfterRequest = onAfterRequest,
-                onRevertOptimisticUpdate = onRevertOptimistic,
-                onSaveRequest = onSaveRequest,
-                onSynchronization = onSynchronization
+                onAfterRequest = onMockAfterRequest,
+                onRevertOptimisticUpdate = onMockRevertOptimistic,
+                onSaveRequest = onMockSaveRequest,
+                onSynchronization = onMockSynchronization
             )
 
             assertThat(result, `is`(Resource.Loaded(task)))
