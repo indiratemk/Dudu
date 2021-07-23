@@ -56,7 +56,7 @@ class RequestManager @Inject constructor() {
     ): Resource<ResultType> {
         return try {
             val result = makeRequest()
-            onSynchronization(makeRequest())
+            onSynchronization(result)
             Resource.Loaded(result)
         } catch (exception: RequestException) {
             Resource.Error(exception.matchMessage())
