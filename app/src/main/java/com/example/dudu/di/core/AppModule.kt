@@ -9,7 +9,6 @@ import dagger.Module
 interface AppModule {
 
     @Binds
-    @AppScope
     fun bindViewModelBuilder(
         viewModelProvider: ViewModelProviderFactory
     ): ViewModelProvider.Factory

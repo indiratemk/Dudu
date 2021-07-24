@@ -1,5 +1,7 @@
 package com.example.dudu.di.core
 
+import android.app.Application
+import com.example.dudu.DuduApp
 import com.example.dudu.data.remote.TasksApi
 import com.example.dudu.data.remote.interceptors.RequestInterceptor
 import dagger.Module
@@ -12,8 +14,6 @@ import java.util.concurrent.TimeUnit
 
 @Module
 object NetworkModule {
-
-    private const val BASE_URL = "https://d5dps3h13rv6902lp5c8.apigw.yandexcloud.net/"
 
     @Provides
     @AppScope
@@ -48,15 +48,17 @@ object NetworkModule {
         return GsonConverterFactory.create()
     }
 
+    // TODO: 7/24/21 Изменить получение base url для запросов
     @Provides
     @AppScope
     fun provideRetrofit(
         gsonConverterFactory: GsonConverterFactory,
-        okHttpClient: OkHttpClient
+        okHttpClient: OkHttpClient,
+        application: Application
     ): Retrofit {
         return Retrofit.Builder()
             .client(okHttpClient)
-            .baseUrl(BASE_URL)
+            .baseUrl((application as DuduApp).getBaseUrl())
             .addConverterFactory(gsonConverterFactory)
             .build()
     }

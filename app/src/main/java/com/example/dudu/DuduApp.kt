@@ -7,10 +7,11 @@ import com.example.dudu.di.DaggerAppComponent
 import com.example.dudu.data.workers.DuduDelegatingWorkerFactory
 import com.example.dudu.data.workers.reminder.TasksReminderWorkManager
 import com.example.dudu.data.workers.synchronization.TasksSynchronizationWorkManager
+import com.example.dudu.util.Constants
 import javax.inject.Inject
 
 
-class DuduApp : Application(), Configuration.Provider {
+open class DuduApp : Application(), Configuration.Provider {
 
     lateinit var appComponent: AppComponent
         private set
@@ -32,5 +33,9 @@ class DuduApp : Application(), Configuration.Provider {
         return Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
+    }
+
+    open fun getBaseUrl(): String {
+        return Constants.BASE_URL
     }
 }
