@@ -1,4 +1,4 @@
-package com.example.dudu.ui
+package com.example.dudu.ui.task
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
@@ -30,8 +30,8 @@ class CreateTaskViewModelTest {
     @MockK
     lateinit var mockTaskObserver: Observer<Resource<Task>>
 
+    private lateinit var task: Task
     lateinit var viewModel: CreateTaskViewModel
-    lateinit var task: Task
 
 
     @Before

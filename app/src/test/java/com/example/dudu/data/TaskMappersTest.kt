@@ -2,8 +2,7 @@ package com.example.dudu.data
 
 import com.example.dudu.data.helpers.mapFromDtoToTask
 import com.example.dudu.data.remote.dtos.TaskDto
-import org.hamcrest.CoreMatchers.`is`
-import org.junit.Assert.assertThat
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TaskMappersTest {
@@ -21,10 +20,10 @@ class TaskMappersTest {
 
         val task = mapFromDtoToTask(taskDto)
 
-        assertThat(task.id, `is`(taskDto.id))
-        assertThat(task.description, `is`(taskDto.text))
-        assertThat(task.deadline, `is`(taskDto.deadline))
-        assertThat(task.priority, `is`(taskDto.importance))
-        assertThat(task.isDone, `is`(taskDto.isDone))
+        assertEquals(taskDto.id, task.id)
+        assertEquals(taskDto.text, task.description)
+        assertEquals(taskDto.deadline, task.deadline)
+        assertEquals(taskDto.importance, task.priority)
+        assertEquals(taskDto.isDone, task.isDone)
     }
 }

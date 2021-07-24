@@ -11,8 +11,7 @@ import io.mockk.coVerifyOrder
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.CoreMatchers.`is`
-import org.junit.Assert.assertThat
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
@@ -202,7 +201,7 @@ class RequestManagerTest {
                 onSynchronization = onMockSynchronization
             )
 
-            assertThat(result, `is`(Resource.Loaded(task)))
+            assertEquals(Resource.Loaded(task), result)
         }
     }
 
@@ -221,7 +220,7 @@ class RequestManagerTest {
                 onSynchronization = onMockSynchronization
             )
 
-            assertThat(result, `is`(Resource.Error(exception.matchMessage())))
+            assertEquals(Resource.Error(exception.matchMessage()), result)
         }
     }
 
@@ -240,7 +239,7 @@ class RequestManagerTest {
                 onSynchronization = onMockSynchronization
             )
 
-            assertThat(result, `is`(Resource.Error(exception.matchMessage())))
+            assertEquals(Resource.Error(exception.matchMessage()), result)
         }
     }
 
@@ -259,7 +258,7 @@ class RequestManagerTest {
                 onSynchronization = onMockSynchronization
             )
 
-            assertThat(result, `is`(Resource.Error(exception.matchMessage())))
+            assertEquals(Resource.Error(exception.matchMessage()), result)
         }
     }
 
@@ -280,7 +279,7 @@ class RequestManagerTest {
                 onSynchronization = onMockSynchronization
             )
 
-            assertThat(result, `is`(Resource.Loaded(task)))
+            assertEquals(Resource.Loaded(task), result)
         }
     }
 
@@ -301,7 +300,7 @@ class RequestManagerTest {
                 onSynchronization = onMockSynchronization
             )
 
-            assertThat(result, `is`(Resource.Loaded(task)))
+            assertEquals(Resource.Loaded(task), result)
         }
     }
 
@@ -317,7 +316,7 @@ class RequestManagerTest {
                 onSynchronization = onSynchronizeNewData
             )
 
-            assertThat(result, `is`(Resource.Loaded(task)))
+            assertEquals(Resource.Loaded(task), result)
             coVerify(exactly = 1) { onSynchronizeNewData(task) }
         }
     }
@@ -334,7 +333,7 @@ class RequestManagerTest {
                 onSynchronization = onSynchronizeNewData
             )
 
-            assertThat(result, `is`(Resource.Error(exception.matchMessage())))
+            assertEquals(Resource.Error(exception.matchMessage()), result)
         }
     }
 }

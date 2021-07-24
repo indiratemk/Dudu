@@ -7,8 +7,7 @@ import com.example.dudu.data.models.Task
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.core.Is.`is`
-import org.junit.Assert.assertThat
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
@@ -34,7 +33,7 @@ class ResponseHandlerTest {
 
             val data = responseHandler.handleResponse(request)
 
-            assertThat(data, `is`(task))
+            assertEquals(task, data)
         }
     }
 
@@ -47,7 +46,7 @@ class ResponseHandlerTest {
             try {
                 responseHandler.handleResponse(request)
             } catch (exception: RequestException) {
-                assertThat(exception.type, `is`(ErrorType.NOT_FOUND))
+                assertEquals(ErrorType.NOT_FOUND, exception.type)
             }
         }
     }
@@ -61,7 +60,7 @@ class ResponseHandlerTest {
             try {
                 responseHandler.handleResponse(request)
             } catch (exception: RequestException) {
-                assertThat(exception.type, `is`(ErrorType.SERVER))
+                assertEquals(ErrorType.SERVER, exception.type)
             }
         }
     }
@@ -75,7 +74,7 @@ class ResponseHandlerTest {
             try {
                 responseHandler.handleResponse(request)
             } catch (exception: RequestException) {
-                assertThat(exception.type, `is`(ErrorType.UNKNOWN))
+                assertEquals(ErrorType.UNKNOWN, exception.type)
             }
         }
     }
@@ -89,7 +88,7 @@ class ResponseHandlerTest {
             try {
                 responseHandler.handleResponse(request)
             } catch (exception: RequestException) {
-                assertThat(exception.type, `is`(ErrorType.TIMEOUT))
+                assertEquals(ErrorType.TIMEOUT, exception.type)
             }
         }
     }
@@ -103,7 +102,7 @@ class ResponseHandlerTest {
             try {
                 responseHandler.handleResponse(request)
             } catch (exception: RequestException) {
-                assertThat(exception.type, `is`(ErrorType.CONNECTION))
+                assertEquals(ErrorType.CONNECTION, exception.type)
             }
         }
     }
@@ -117,7 +116,7 @@ class ResponseHandlerTest {
             try {
                 responseHandler.handleResponse(request)
             } catch (exception: RequestException) {
-                assertThat(exception.type, `is`(ErrorType.UNKNOWN))
+                assertEquals(ErrorType.UNKNOWN, exception.type)
             }
         }
     }
