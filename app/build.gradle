@@ -91,5 +91,6 @@ dependencies {
     androidTestImplementation "io.mockk:mockk-android:1.12.0"
     androidTestImplementation "androidx.arch.core:core-testing:$archTestingVersion"
     androidTestImplementation "com.squareup.okhttp3:mockwebserver:$okHttpVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:3.4.0"
     androidTestImplementation 'com.jakewharton.espresso:okhttp3-idling-resource:1.0.0'
 }
