@@ -1,11 +1,14 @@
 package com.example.dudu.di.core
 
 import android.app.Application
+import com.example.dudu.BuildConfig
 import com.example.dudu.DuduApp
 import com.example.dudu.data.remote.TasksApi
 import com.example.dudu.data.remote.interceptors.RequestInterceptor
 import dagger.Module
 import dagger.Provides
+import dagger.multibindings.IntoSet
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -17,28 +20,31 @@ object NetworkModule {
 
     @Provides
     @AppScope
-    fun provideRequestInterceptor(): RequestInterceptor {
+    @IntoSet
+    fun provideRequestInterceptor(): Interceptor {
         return RequestInterceptor()
     }
 
     @Provides
     @AppScope
-    fun httpLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+    @IntoSet
+    fun httpLoggingInterceptor(): Interceptor {
+        return if (BuildConfig.DEBUG)
+            HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+        else
+            HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE)
     }
 
     @Provides
     @AppScope
     fun provideOkHttpClient(
-        requestInterceptor: RequestInterceptor,
-        httpLoggingInterceptor: HttpLoggingInterceptor
+        interceptors: Set<@JvmSuppressWildcards Interceptor>
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
-            .addInterceptor(requestInterceptor)
-            .addInterceptor(httpLoggingInterceptor)
+            .addInterceptors(interceptors)
             .build()
     }
 
