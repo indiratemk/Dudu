@@ -11,5 +11,5 @@ object Constants {
     const val RESULT_TASK_CREATED = 104
     const val RESULT_TASK_UPDATED = 105
 
-    const val DUDU_PREFERENCES = "DUDU_PREFERENCES"
+    const val BASE_URL = "https://d5dps3h13rv6902lp5c8.apigw.yandexcloud.net/"
 }

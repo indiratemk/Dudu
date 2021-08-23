@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -25,12 +26,14 @@ import javax.inject.Inject
 class TasksActivity : AppCompatActivity(), TaskClickListener {
 
     @Inject
-    lateinit var viewModelProvider: ViewModelProviderFactory
+    lateinit var viewModelProvider: ViewModelProvider.Factory
 
     private lateinit var binding: MainActivityBinding
-    private lateinit var tasksViewModel: TasksViewModel
     private lateinit var loadingDialog: MaterialDialog
     private val tasksAdapter = TaskAdapter(this)
+    private val tasksViewModel: TasksViewModel by viewModels {
+        viewModelProvider
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,9 +43,6 @@ class TasksActivity : AppCompatActivity(), TaskClickListener {
         (applicationContext as DuduApp).appComponent
             .tasksComponent()
             .inject(this)
-
-        tasksViewModel =
-            ViewModelProvider(this, viewModelProvider)[TasksViewModel::class.java]
 
         initUI()
         subscribeObservers()

@@ -1,4 +1,4 @@
-package com.example.dudu.util.workers
+package com.example.dudu.data.workers.reminder
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,17 +9,11 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.dudu.R
 import com.example.dudu.data.TasksRepository
 import com.example.dudu.ui.tasks.TasksActivity
 import com.example.dudu.util.DateFormatter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 class TasksReminderWorker(
     private val appContext: Context,
@@ -28,15 +22,13 @@ class TasksReminderWorker(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        return withContext(Dispatchers.IO) {
-            val tasksCount = repository.getTasksByDeadlineCount(DateFormatter.getCurrentDateInSeconds())
-            if (tasksCount > 0)
-                sendReminderNotification(tasksCount)
+        val tasksCount = repository.getTasksByDeadlineCount(DateFormatter.getCurrentDateInSeconds())
+        if (tasksCount > 0)
+            sendReminderNotification(tasksCount)
 
-            scheduleWork()
+        TasksReminderWorkManager.scheduleWork(appContext)
 
-            Result.success()
-        }
+        return Result.success()
     }
 
     private fun sendReminderNotification(size: Int) {
@@ -76,30 +68,5 @@ class TasksReminderWorker(
             .setAutoCancel(true)
 
         notificationManager.notify(1, builder.build())
-    }
-
-    private fun scheduleWork() {
-        val reminderWorkRequest = OneTimeWorkRequestBuilder<TasksReminderWorker>()
-            .setInitialDelay(getWorkRepetitionTimeInMillis(), TimeUnit.MILLISECONDS)
-            .addTag(REMINDER_WORK_TAG)
-            .build()
-        WorkManager.getInstance(appContext)
-            .enqueue(reminderWorkRequest)
-    }
-
-    companion object {
-        const val REMINDER_WORK_TAG = "REMINDER_WORK_TAG"
-
-        fun getWorkRepetitionTimeInMillis(): Long {
-            val currentDate = Calendar.getInstance()
-            val notificationDate = Calendar.getInstance()
-            notificationDate.set(Calendar.HOUR_OF_DAY, 6)
-            notificationDate.set(Calendar.MINUTE, 0)
-            notificationDate.set(Calendar.SECOND, 0)
-            if (notificationDate.before(currentDate)) {
-                notificationDate.add(Calendar.HOUR_OF_DAY, 24)
-            }
-            return notificationDate.timeInMillis - currentDate.timeInMillis
-        }
     }
 }

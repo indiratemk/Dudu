@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
@@ -26,10 +27,9 @@ import javax.inject.Inject
 class CreateTaskActivity : AppCompatActivity()  {
 
     @Inject
-    lateinit var viewModelProvider: ViewModelProviderFactory
+    lateinit var viewModelProvider: ViewModelProvider.Factory
 
     private lateinit var binding: CreateTaskActivityBinding
-    private lateinit var createTaskViewModel: CreateTaskViewModel
     private lateinit var prioritiesAdapter: PrioritiesAdapter
     private lateinit var task: Task
     private lateinit var loadingDialog: MaterialDialog
@@ -44,6 +44,9 @@ class CreateTaskActivity : AppCompatActivity()  {
             deadlineLayout.tvDate.visibility = View.VISIBLE
         }
     })
+    private val createTaskViewModel: CreateTaskViewModel by viewModels {
+        viewModelProvider
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,9 +56,6 @@ class CreateTaskActivity : AppCompatActivity()  {
         (applicationContext as DuduApp).appComponent
             .createTaskComponent()
             .inject(this)
-
-        createTaskViewModel =
-            ViewModelProvider(this, viewModelProvider)[CreateTaskViewModel::class.java]
 
         val task = intent.getParcelableExtra<Task>(Constants.EXTRA_TASK)
         isTaskCreation = task == null

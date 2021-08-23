@@ -1,0 +1,47 @@
+[
+  {
+    "id": "12352",
+    "text": "Проверка UI тестов",
+    "importance": "important",
+    "done": false,
+    "deadline": 1624850000,
+    "created_at": 1624830000,
+    "updated_at": 1624830522
+  },
+  {
+    "id": "180698f9-8b6d-49d9-8195-dc5ca7f221cd",
+    "text": "Тест4",
+    "importance": "basic",
+    "done": false,
+    "deadline": 1626814800,
+    "created_at": 1626814800,
+    "updated_at": 1626814800
+  },
+  {
+    "id": "3db25652-3c11-4e92-9429-735d6a03ce37",
+    "text": "Создание задачи",
+    "importance": "important",
+    "done": false,
+    "deadline": 0,
+    "created_at": 1627074000,
+    "updated_at": 1627074000
+  },
+  {
+    "id": "570e8d19-d921-4c62-a2c4-68ca3d0911ba",
+    "text": "Тест3",
+    "importance": "basic",
+    "done": true,
+    "deadline": 1626814800,
+    "created_at": 1626814800,
+    "updated_at": 1627074000
+  },
+  {
+    "id": "66614ed5-c903-4dc6-9159-55fd76077dbc",
+    "text": "Курица🐥",
+    "importance": "basic",
+    "done": false,
+    "deadline": 1627160400,
+    "created_at": 1627074000,
+    "updated_at": 1627074000
+  }
+]

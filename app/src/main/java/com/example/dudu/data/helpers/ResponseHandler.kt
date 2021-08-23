@@ -23,9 +23,7 @@ class ResponseHandler @Inject constructor() {
             throw when (response.code()) {
                 404 -> RequestException(ErrorType.NOT_FOUND)
                 500 -> RequestException(ErrorType.SERVER)
-                else -> RequestException(
-                    ErrorType.UNKNOWN
-                )
+                else -> RequestException(ErrorType.UNKNOWN)
             }
         } catch (exception: SocketTimeoutException) {
             throw RequestException(ErrorType.TIMEOUT)
